@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebDemuxer</title>
+</head>
+<body>
+  <input type="number" name="" id="timestamp">
+  <input type="file" id="file">
+  <button id="seek">seek</button>
+  <button id="play">play</button>
+  <canvas id="canvas" width="640px" height="360px"></canvas>
+
+  <script type="module">
+  import { WebDemuxer } from './src'
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const demuxer = new WebDemuxer({
+    wasmLoaderPath: "http://localhost:5173/src/lib/ffmpeg.js",
+  })
+
+  document.getElementById('play').addEventListener('click', async () => {
+    const file = document.getElementById('file').files[0]
+    const timestamp = document.getElementById('timestamp').value
+
+    await demuxer.load(file)
+
+    const videoDecoderConfig = await demuxer.getVideoDecoderConfig()
+    const decoder = new VideoDecoder({
+      output: (frame) => {
+        const scale = Math.min(canvas.width / frame.displayWidth, canvas.height / frame.displayHeight)
+        ctx.drawImage(frame, 0, 0, frame.displayWidth * scale, frame.displayHeight * scale);
+        frame.close()
+      },
+      error: (e)=> {
+        console.error('video decoder error:', e)
+      }
+    })
+
+    decoder.configure(videoDecoderConfig)
+
+    const reader = demuxer.readAVPacket().getReader()
+
+    reader.read().then(async function processPacket({ done, value}) {
+      if (done) {
+        decoder.flush()
+        console.log('main process packet done')
+        return
+      }
+
+      const videoChunk = demuxer.genEncodedVideoChunk(value)
+
+      decoder.decode(videoChunk)
+
+      await sleep(1000 / 30)
+
+      return reader.read().then(processPacket)
+    })
+
+  })
+
+  document.getElementById('seek').addEventListener('click', async (e) => {
+    const file = document.getElementById('file').files[0]
+    const timestamp = document.getElementById('timestamp').value
+
+    await demuxer.load(file)
+
+    // const audioConfig = await demuxer.getAudioDecoderConfig()
+    // AudioDecoder.isConfigSupported(audioConfig).then(res => {
+    //   console.log('audio config supported:', res)
+    // })
+    // console.log('audioConfig', audioConfig)
+
+    // demuxer.getAudioStream().then(res => {
+    //   console.log('audio stream:', res)
+    // }).catch(e => {
+    //   console.error('audio stream error:', e)
+    // })
+
+    // demuxer.seekAudioPacket(10).then(res => {
+    //   console.log('audio chunk:', res)
+    // }).catch(e => {
+    //   console.error('audio chunk error:', e)
+    // })
+
+    console.time('decoder config')
+    const videoDecoderConfig = await demuxer.getVideoDecoderConfig()
+    console.timeEnd('decoder config')
+    console.log('video decoder config:', videoDecoderConfig)
+    console.time('chunk')
+    const videoChunk = await demuxer.seekEncodedVideoChunk(timestamp)
+    console.timeEnd('chunk')
+    console.log('videoChunk', videoChunk)
+
+    const decoder = new VideoDecoder({
+      output: (frame) => {
+        console.log('decode frame:', frame)
+        const scale = Math.min(canvas.width / frame.displayWidth, canvas.height / frame.displayHeight)
+        ctx.drawImage(frame, 0, 0, frame.displayWidth * scale, frame.displayHeight * scale);
+        frame.close()
+      },
+      error: (e)=> {
+        console.error('video decoder error:', e)
+      }
+    })
+
+    decoder.configure(videoDecoderConfig)
+    decoder.decode(videoChunk)
+    decoder.flush()
+  })
+  </script>
+  
+</body>
+</html>

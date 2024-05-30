@@ -1,0 +1,284 @@
+#include "video_codec_string.h"
+#include "audio_codec_string.h"
+#include "web_demuxer.h"
+
+EM_ASYNC_JS(int, send_av_packet, (int msg_id, WebAVPacket *av_packet), {
+    try
+    {
+        await sendAVPacket(msg_id, av_packet);
+    }
+    catch (e)
+    {
+        return 0;
+    }
+
+    return 1;
+});
+
+WebAVStream *EMSCRIPTEN_KEEPALIVE get_av_stream(const char *filename, int type, int wanted_stream_nb)
+{
+    AVFormatContext *fmt_ctx = NULL;
+    int ret;
+
+    if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    int stream_index = av_find_best_stream(fmt_ctx, type, wanted_stream_nb, -1, NULL, 0);
+
+    if (stream_index < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find wanted stream in the input file\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    AVStream *raw_stream = fmt_ctx->streams[stream_index];
+    WebAVStream *stream = malloc(sizeof(WebAVStream));
+
+    stream->codecpar = malloc(sizeof(WebAVCodecParameters));
+
+    // codecpar info
+    stream->codecpar->codec_type = raw_stream->codecpar->codec_type;
+    stream->codecpar->codec_id = raw_stream->codecpar->codec_id;
+
+    // codec_string
+    char codec_string[40];
+
+    if (raw_stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    {
+        set_video_codec_string(codec_string, sizeof(codec_string), raw_stream->codecpar, &raw_stream->avg_frame_rate);
+    }
+    else if (raw_stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+    {
+        set_audio_codec_string(codec_string, sizeof(codec_string), raw_stream->codecpar);
+    }
+    else
+    {
+        strcpy(codec_string, "undf");
+    }
+
+    stream->codecpar->codec_string = malloc(sizeof(char) * strlen(codec_string));
+    strcpy(stream->codecpar->codec_string, codec_string);
+
+    // extradata
+    stream->codecpar->extradata = malloc(sizeof(uint8_t) * raw_stream->codecpar->extradata_size);
+    memcpy(stream->codecpar->extradata, raw_stream->codecpar->extradata, raw_stream->codecpar->extradata_size);
+
+    stream->codecpar->extradata_size = raw_stream->codecpar->extradata_size;
+    stream->codecpar->format = raw_stream->codecpar->format;
+    stream->codecpar->profile = raw_stream->codecpar->profile;
+    stream->codecpar->level = raw_stream->codecpar->level;
+    stream->codecpar->width = raw_stream->codecpar->width;
+    stream->codecpar->height = raw_stream->codecpar->height;
+    stream->codecpar->channels = raw_stream->codecpar->ch_layout.nb_channels;
+    stream->codecpar->sample_rate = raw_stream->codecpar->sample_rate;
+
+    // other stream info
+    stream->index = raw_stream->index;
+    stream->id = raw_stream->id;
+    stream->start_time = raw_stream->start_time * av_q2d(raw_stream->time_base);
+    stream->duration = raw_stream->duration * av_q2d(raw_stream->time_base);
+
+    avformat_close_input(&fmt_ctx);
+
+    return stream;
+}
+
+WebAVPacket *EMSCRIPTEN_KEEPALIVE get_av_packet(const char *filename, double timestamp, int type, int wanted_stream_nb)
+{
+    AVFormatContext *fmt_ctx = NULL;
+    int ret;
+
+    if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    int stream_index = av_find_best_stream(fmt_ctx, type, wanted_stream_nb, -1, NULL, 0);
+
+    if (stream_index < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find wanted stream in the input file\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    AVPacket *packet = NULL;
+    packet = av_packet_alloc();
+
+    if (!packet)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot allocate packet\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    int64_t int64_timestamp = (int64_t)(timestamp * AV_TIME_BASE);
+    int64_t seek_time_stamp = av_rescale_q(int64_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
+
+    if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot seek to the specified timestamp\n");
+        avformat_close_input(&fmt_ctx);
+        av_packet_unref(packet);
+        av_packet_free(&packet);
+        return NULL;
+    }
+
+    while (av_read_frame(fmt_ctx, packet) >= 0)
+    {
+        if (packet->stream_index == stream_index)
+        {
+            break;
+        }
+        av_packet_unref(packet);
+    }
+
+    if (!packet)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Failed to get av packet at timestamp\n");
+        avformat_close_input(&fmt_ctx);
+        return NULL;
+    }
+
+    WebAVPacket *web_packet = malloc(sizeof(WebAVPacket));
+
+    double packet_timestamp = packet->pts * av_q2d(fmt_ctx->streams[stream_index]->time_base);
+
+    web_packet->keyframe = packet->flags & AV_PKT_FLAG_KEY;
+    web_packet->timestamp = packet_timestamp > 0 ? packet_timestamp : 0;
+    web_packet->duration = packet->duration * av_q2d(fmt_ctx->streams[stream_index]->time_base);
+    web_packet->size = packet->size;
+    web_packet->data = malloc(sizeof(uint8_t) * packet->size);
+    memcpy(web_packet->data, packet->data, packet->size);
+
+    avformat_close_input(&fmt_ctx);
+    av_packet_unref(packet);
+    av_packet_free(&packet);
+
+    return web_packet;
+}
+
+int EMSCRIPTEN_KEEPALIVE read_av_packet(int msg_id, const char *filename, double start, double end, int type, int wanted_stream_nb)
+{
+    AVFormatContext *fmt_ctx = NULL;
+    int ret;
+
+    if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
+        avformat_close_input(&fmt_ctx);
+        return 0;
+    }
+
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        avformat_close_input(&fmt_ctx);
+        return 0;
+    }
+
+    int stream_index = av_find_best_stream(fmt_ctx, type, wanted_stream_nb, -1, NULL, 0);
+
+    if (stream_index < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find wanted stream in the input file\n");
+        avformat_close_input(&fmt_ctx);
+        return 0;
+    }
+
+    AVPacket *packet = NULL;
+    packet = av_packet_alloc();
+
+    if (!packet)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot allocate packet\n");
+        avformat_close_input(&fmt_ctx);
+        return 0;
+    }
+
+    if (start > 0)
+    {
+        int64_t int64_timestamp = (int64_t)(start * AV_TIME_BASE);
+        int64_t seek_time_stamp = av_rescale_q(int64_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
+
+        if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
+        {
+            av_log(NULL, AV_LOG_ERROR, "Cannot seek to the specified timestamp\n");
+            avformat_close_input(&fmt_ctx);
+            av_packet_unref(packet);
+            av_packet_free(&packet);
+            return 0;
+        }
+    }
+
+    while (av_read_frame(fmt_ctx, packet) >= 0)
+    {
+        if (packet->stream_index == stream_index)
+        {
+            int64_t packet_timestamp = av_rescale_q(packet->pts, fmt_ctx->streams[stream_index]->time_base, AV_TIME_BASE_Q);
+
+            if (end > 0 && (packet_timestamp > end * AV_TIME_BASE))
+            {
+                break;
+            }
+
+            if (packet)
+            {
+                WebAVPacket *web_packet = malloc(sizeof(WebAVPacket));
+
+                double packet_timestamp = packet->pts * av_q2d(fmt_ctx->streams[stream_index]->time_base);
+
+                web_packet->keyframe = packet->flags & AV_PKT_FLAG_KEY;
+                web_packet->timestamp = packet_timestamp > 0 ? packet_timestamp : 0; // TODO: some packets have negative pts
+                web_packet->duration = packet->duration * av_q2d(fmt_ctx->streams[stream_index]->time_base);
+                web_packet->size = packet->size;
+                web_packet->data = malloc(sizeof(uint8_t) * packet->size);
+                memcpy(web_packet->data, packet->data, packet->size);
+
+                // call js method to send packet
+                int send_ret = send_av_packet(msg_id, web_packet);
+
+                if (send_ret == 0)
+                {
+                    break;
+                }
+            }
+            else
+            {
+                av_log(NULL, AV_LOG_ERROR, "Failed to get av packet at timestamp\n");
+                break;
+            }
+        }
+        av_packet_unref(packet);
+    }
+
+    // call js method to end send packet
+    send_av_packet(msg_id, NULL);
+
+    avformat_close_input(&fmt_ctx);
+    av_packet_unref(packet);
+    av_packet_free(&packet);
+
+    return 1;
+}
