@@ -1,6 +1,7 @@
 {
   "name": "web-demuxer",
   "version": "1.0.0",
+  "description": "Web Demuxer Design for WebCodecs, using ffmpeg/libavformat & WebAssembly to demux media files",
   "type": "module",
   "files": [
     "dist"
@@ -18,9 +19,13 @@
     "dev": "vite",
     "dev:docker:arm64": "docker-compose up dev-web-demuxer-arm64 -d",
     "dev:docker:x86_64": "docker-compose up dev-web-demuxer-x86_64 -d",
-    "dev:make:ffmpeg-lib": "docker exec -it web-demuxer make ffmpeg-lib",
-    "dev:make:web-demuxer": "docker exec -it web-demuxer make web-demuxer",
+    "make:ffmpeg-lib-mini": "docker exec -it web-demuxer make ffmpeg-lib-mini",
+    "make:ffmpeg-lib": "docker exec -it web-demuxer make ffmpeg-lib",
+    "make:web-demuxer": "docker exec -it web-demuxer make web-demuxer",
+    "make:web-demuxer-mini": "docker exec -it web-demuxer make web-demuxer-mini",
     "build": "tsc && vite build",
+    "build:wasm:mini": "npm run make:ffmpeg-lib-mini && npm run make:web-demuxer-mini",
+    "build:wasm": "npm run make:ffmpeg-lib && npm run make:web-demuxer",
     "test": "vitest",
     "lint": "lint-staged",
     "prepublishOnly": "npm run build",
@@ -52,5 +57,9 @@
   "engines": {
     "node": ">=18",
     "pnpm": ">=8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForeverSc/web-demuxer"
   }
 }
