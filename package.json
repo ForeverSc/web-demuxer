@@ -17,8 +17,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "dev:docker:arm64": "docker-compose up dev-web-demuxer-arm64 -d",
-    "dev:docker:x86_64": "docker-compose up dev-web-demuxer-x86_64 -d",
+    "dev:docker:arm64": "docker-compose down dev-web-demuxer-arm64 && docker-compose up dev-web-demuxer-arm64 -d",
+    "dev:docker:x86_64": "docker-compose down dev-web-demuxer-x86_64 && docker-compose up dev-web-demuxer-x86_64",
     "make:ffmpeg-lib-mini": "docker exec -it web-demuxer make ffmpeg-lib-mini",
     "make:ffmpeg-lib": "docker exec -it web-demuxer make ffmpeg-lib",
     "make:web-demuxer": "docker exec -it web-demuxer make web-demuxer",

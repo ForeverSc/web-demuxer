@@ -7,6 +7,8 @@ import {
 } from "./types";
 import FFmpegWorker from "./ffmpeg.worker.ts?worker&inline";
 
+const TIME_BASE = 1000000;
+
 interface WebDemuxerOptions {
   /**
    * path to the wasm loader
@@ -282,7 +284,7 @@ export class WebDemuxer {
 
   public genVideoDecoderConfig(avStream: WebAVStream): VideoDecoderConfig {
     return {
-      codec: avStream.codecpar.codec_string || "",
+      codec: avStream.codecpar.codec_string,
       codedWidth: avStream.codecpar.width,
       codedHeight: avStream.codecpar.height,
       description:
@@ -295,8 +297,8 @@ export class WebDemuxer {
   public genEncodedVideoChunk(avPacket: WebAVPacket): EncodedVideoChunk {
     return new EncodedVideoChunk({
       type: avPacket.keyframe === 1 ? "key" : "delta",
-      timestamp: avPacket.timestamp * 1000000,
-      duration: avPacket.duration * 1000000,
+      timestamp: avPacket.timestamp * TIME_BASE,
+      duration: avPacket.duration * TIME_BASE,
       data: avPacket.data,
     });
   }
@@ -316,8 +318,8 @@ export class WebDemuxer {
   public genEncodedAudioChunk(avPacket: WebAVPacket): EncodedAudioChunk {
     return new EncodedAudioChunk({
       type: avPacket.keyframe === 1 ? "key" : "delta",
-      timestamp: avPacket.timestamp * 1000000,
-      duration: avPacket.duration * 1000000,
+      timestamp: avPacket.timestamp * TIME_BASE,
+      duration: avPacket.duration * TIME_BASE,
       data: avPacket.data,
     });
   }

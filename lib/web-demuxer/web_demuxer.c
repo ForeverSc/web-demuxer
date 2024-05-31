@@ -48,11 +48,10 @@ WebAVStream *EMSCRIPTEN_KEEPALIVE get_av_stream(const char *filename, int type, 
 
     stream->codecpar = malloc(sizeof(WebAVCodecParameters));
 
-    // codecpar info
+    // codecpar
     stream->codecpar->codec_type = raw_stream->codecpar->codec_type;
     stream->codecpar->codec_id = raw_stream->codecpar->codec_id;
 
-    // codec_string
     char codec_string[40];
 
     if (raw_stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
@@ -71,7 +70,7 @@ WebAVStream *EMSCRIPTEN_KEEPALIVE get_av_stream(const char *filename, int type, 
     stream->codecpar->codec_string = malloc(sizeof(char) * strlen(codec_string));
     strcpy(stream->codecpar->codec_string, codec_string);
 
-    // extradata
+    // codecpar->extradata
     stream->codecpar->extradata = malloc(sizeof(uint8_t) * raw_stream->codecpar->extradata_size);
     memcpy(stream->codecpar->extradata, raw_stream->codecpar->extradata, raw_stream->codecpar->extradata_size);
 
@@ -88,7 +87,7 @@ WebAVStream *EMSCRIPTEN_KEEPALIVE get_av_stream(const char *filename, int type, 
     stream->index = raw_stream->index;
     stream->id = raw_stream->id;
     stream->start_time = raw_stream->start_time * av_q2d(raw_stream->time_base);
-    stream->duration = raw_stream->duration * av_q2d(raw_stream->time_base);
+    stream->duration = raw_stream->duration > 0 ? raw_stream->duration * av_q2d(raw_stream->time_base) : fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q); // TODO: some file type can not get stream duration
 
     avformat_close_input(&fmt_ctx);
 

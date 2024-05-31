@@ -18,18 +18,3 @@ services:
     stdin_open: true
     tty: true
     command: ["/bin/bash"]
-  # Build
-  # build-web-demuxer-arm64:
-  #   container_name: web-demuxer
-  #   image: emscripten/emsdk:3.1.60-arm64
-  #   working_dir: /app
-  #   volumes:
-  #     - ./:/app
-  #   command: ["make ffmpeg-lib", "make web-demuxer"]
-  # build-web-demuxer-x86_64:
-  #   container_name: web-demuxer
-  #   image: emscripten/emsdk:3.1.60
-  #   working_dir: /app
-  #   volumes:
-  #     - ./:/app
-  #   command: ["make ffmpeg-lib", "make web-demuxer"]
