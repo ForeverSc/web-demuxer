@@ -7,7 +7,7 @@
 typedef struct {
     enum AVMediaType codec_type;
     enum AVCodecID   codec_id;
-    char* codec_string;
+    char *codec_string;
     int format;
     int profile;
     int level;
@@ -16,7 +16,7 @@ typedef struct {
     int channels; // audio only
     int sample_rate; // audio only
     int extradata_size;
-    uint8_t* extradata;
+    uint8_t *extradata;
 } WebAVCodecParameters;
 
 typedef struct {
@@ -32,5 +32,11 @@ typedef struct {
     double timestamp;
     double duration;
     int size;
-    uint8_t* data;
+    uint8_t *data;
 } WebAVPacket;
+
+typedef struct  
+{
+    int size;
+    WebAVPacket *packets;
+} WebAVPacketList;

@@ -51,6 +51,21 @@ self.addEventListener("message", async function (e) {
         },
         [result.data.buffer],
       );
+    } else if (type === 'GetAVPackets') {
+      const {
+        file,
+        timestamp,
+      } = data;
+      const result = Module.getAVPackets(file, timestamp);
+
+      self.postMessage(
+        {
+          type,
+          msgId,
+          result,
+        },
+        // [result.data.buffer],
+      );
     } else if (type === "ReadAVPacket") {
       const {
         file,

@@ -153,6 +153,40 @@ export class WebDemuxer {
     });
   }
 
+public getAVPackets(
+    timestamp: number,
+  ): Promise<WebAVPacket[]> {
+    return new Promise((resolve, reject) => {
+      if (!this.file) {
+        reject("file is not loaded");
+        return;
+      }
+
+      const msgId = this.msgId;
+      const msgListener = (e: MessageEvent) => {
+        const data = e.data;
+
+        if (
+          data.type === FFMpegWorkerMessageType.GetAVPackets &&
+          data.msgId === msgId
+        ) {
+          if (data.errMsg) {
+            reject(data.errMsg);
+          } else {
+            resolve(data.result);
+          }
+          this.ffmpegWorker.removeEventListener("message", msgListener);
+        }
+      };
+
+      this.ffmpegWorker.addEventListener("message", msgListener);
+      this.post(FFMpegWorkerMessageType.GetAVPackets, {
+        file: this.file,
+        timestamp,
+      });
+    });
+  }
+
   /**
    * start => ReadAVPacket => AVPacketStream => queue
    * pull => ReadNextAVPacket

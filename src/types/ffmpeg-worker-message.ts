@@ -5,6 +5,7 @@ export enum FFMpegWorkerMessageType {
   WASMRuntimeInitialized = "WASMRuntimeInitialized",
   LoadWASM = "LoadWASM",
   GetAVPacket = "GetAVPacket",
+  GetAVPackets = "GetAVPackets",
   GetAVStream = "GetAVStream",
   ReadAVPacket = "ReadAVPacket",
   AVPacketStream = "AVPacketStream",
@@ -14,6 +15,7 @@ export enum FFMpegWorkerMessageType {
 
 export type FFMpegWorkerMessageData =
   | GetAVPacketMessageData
+  | GetAVPacketsMessageData
   | GetAVStreamMessageData
   | ReadAVPacketMessageData
   | LoadWASMMessageData;
@@ -29,6 +31,11 @@ export interface GetAVPacketMessageData {
   timestamp: number;
   streamType: AVMediaType;
   streamIndex: number;
+}
+
+export interface GetAVPacketsMessageData {
+  file: File;
+  timestamp: number;
 }
 
 export interface ReadAVPacketMessageData {
