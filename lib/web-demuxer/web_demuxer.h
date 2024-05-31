@@ -35,8 +35,12 @@ typedef struct {
     uint8_t *data;
 } WebAVPacket;
 
-typedef struct  
-{
+typedef struct {
+    int size;
+    WebAVStream *streams;
+} WebAVStreamList;
+
+typedef struct {
     int size;
     WebAVPacket *packets;
 } WebAVPacketList;

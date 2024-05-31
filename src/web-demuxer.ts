@@ -115,6 +115,35 @@ export class WebDemuxer {
     });
   }
 
+  public getAVStreams(): Promise<WebAVStream[]> {
+    return new Promise((resolve, reject) => {
+      if (!this.file) {
+        reject("file is not loaded");
+        return;
+      }
+
+      const msgId = this.msgId;
+      const msgListener = ({ data }: MessageEvent) => {
+        if (
+          data.type === FFMpegWorkerMessageType.GetAVStreams &&
+          data.msgId === msgId
+        ) {
+          if (data.errMsg) {
+            reject(data.errMsg);
+          } else {
+            resolve(data.result);
+          }
+          this.ffmpegWorker.removeEventListener("message", msgListener);
+        }
+      };
+
+      this.ffmpegWorker.addEventListener("message", msgListener);
+      this.post(FFMpegWorkerMessageType.GetAVStreams, {
+        file: this.file,
+      });
+    });
+  }
+
   public getAVPacket(
     timestamp: number,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
@@ -153,7 +182,7 @@ export class WebDemuxer {
     });
   }
 
-public getAVPackets(
+  public getAVPackets(
     timestamp: number,
   ): Promise<WebAVPacket[]> {
     return new Promise((resolve, reject) => {

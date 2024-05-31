@@ -29,6 +29,21 @@ self.addEventListener("message", async function (e) {
         },
         [result.codecpar.extradata.buffer],
       );
+    } else if (type === 'GetAVStreams') {
+     const {
+        file,
+      } = data;
+      const result = Module.getAVStreams(file);
+
+      self.postMessage(
+        {
+          type,
+          msgId,
+          result,
+        },
+        // [result.codecpar.extradata.buffer], // TODO: transfer
+      );
+
     } else if (type === "GetAVPacket") {
       const {
         file,
@@ -64,7 +79,7 @@ self.addEventListener("message", async function (e) {
           msgId,
           result,
         },
-        // [result.data.buffer],
+        // [result.data.buffer], // TODO: transfer
       );
     } else if (type === "ReadAVPacket") {
       const {
