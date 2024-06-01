@@ -222,7 +222,6 @@ export class WebDemuxer {
    * cancel => StopReadAVPacket
    */
   public readAVPacket(
-    timestamp: number,
     start: number,
     end: number,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
@@ -271,7 +270,6 @@ export class WebDemuxer {
             file: this.file,
             start,
             end,
-            timestamp,
             streamType,
             streamIndex,
           });

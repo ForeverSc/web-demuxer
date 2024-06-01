@@ -1,3 +1,5 @@
+import { WebAVPacket, WebAVStream } from "./types";
+
 let Module: any; // TODO: rm any
 
 self.postMessage({
@@ -41,7 +43,7 @@ self.addEventListener("message", async function (e) {
           msgId,
           result,
         },
-        // [result.codecpar.extradata.buffer], // TODO: transfer
+        result.map((stream: WebAVStream) => stream.codecpar.extradata.buffer)
       );
 
     } else if (type === "GetAVPacket") {
@@ -79,15 +81,15 @@ self.addEventListener("message", async function (e) {
           msgId,
           result,
         },
-        // [result.data.buffer], // TODO: transfer
+        result.map((packet: WebAVPacket) => packet.data.buffer),
       );
     } else if (type === "ReadAVPacket") {
       const {
         file,
-        streamType,
-        streamIndex,
         start,
         end,
+        streamType,
+        streamIndex,
       } = data;
       const result = Module.readAVPacket(
         msgId,

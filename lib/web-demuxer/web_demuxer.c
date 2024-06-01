@@ -1,5 +1,3 @@
-#include "video_codec_string.h"
-#include "audio_codec_string.h"
 #include "web_demuxer.h"
 
 EM_ASYNC_JS(int, send_av_packet, (int msg_id, WebAVPacket *av_packet), {
@@ -403,10 +401,10 @@ int EMSCRIPTEN_KEEPALIVE read_av_packet(int msg_id, const char *filename, double
 
     if (start > 0)
     {
-        int64_t int64_timestamp = (int64_t)(start * AV_TIME_BASE);
-        int64_t seek_time_stamp = av_rescale_q(int64_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
+        int64_t start_timestamp = (int64_t)(start * AV_TIME_BASE);
+        int64_t rescaled_start_time_stamp = av_rescale_q(start_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
 
-        if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
+        if ((ret = av_seek_frame(fmt_ctx, stream_index, rescaled_start_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
         {
             av_log(NULL, AV_LOG_ERROR, "Cannot seek to the specified timestamp\n");
             avformat_close_input(&fmt_ctx);
@@ -422,9 +420,14 @@ int EMSCRIPTEN_KEEPALIVE read_av_packet(int msg_id, const char *filename, double
         {
             int64_t packet_timestamp = av_rescale_q(packet->pts, fmt_ctx->streams[stream_index]->time_base, AV_TIME_BASE_Q);
 
-            if (end > 0 && (packet_timestamp > end * AV_TIME_BASE))
+            if (end > 0)
             {
-                break;
+                int64_t end_timestamp = (int64_t)(end * AV_TIME_BASE);
+                int64_t rescaled_end_time_stamp = av_rescale_q(end_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
+
+                if (packet_timestamp > rescaled_end_time_stamp) {
+                    break;
+                }
             }
 
             if (packet)

@@ -3,6 +3,8 @@
 #include "libavutil/avutil.h"
 #include "libavcodec/avcodec.h"
 #include "libavcodec/codec_id.h"
+#include "video_codec_string.h"
+#include "audio_codec_string.h"
 
 typedef struct {
     enum AVMediaType codec_type;
