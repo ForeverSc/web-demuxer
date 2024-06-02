@@ -87,7 +87,7 @@
   </main>
   <script type="module">
     (async () => {
-      const isDev = import.meta.env && import.meta.env.DEV
+      const isDEV = import.meta.env && import.meta.env.DEV
       const { WebDemuxer } = isDEV ? await import('./src') : await import('https://cdn.jsdelivr.net/npm/web-demuxer@latest/dist/web-demuxer.js')
 
       const demuxer = new WebDemuxer({
