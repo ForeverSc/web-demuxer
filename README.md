@@ -10,12 +10,12 @@ WebCodecs only provide the ability to decode, but not to demux. mp4box.js is coo
 - 📦 One-time support for a variety of media formats, such as mov/mp4/mkv/webm/flv/m4v/wmv/avi, etc.
 - 🧩 Support for customized packaging, you can adjust the configuration, packaged in a specified format demuxer
 
-### Install
+## Install
 ```bash
 npm install web-demuxer
 ```
 
-### Usage
+## Usage
 ```typescript
 import { WebDemuxer } from "web-demuxer"
 
@@ -49,7 +49,11 @@ async function seek(time) {
 }
 ```
 
-### API
+## Examples
+- [Seek Video Frame](https://foreversc.github.io/web-demuxer/#example-seek): [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L96)
+- [Play Video](https://foreversc.github.io/web-demuxer/#example-play): [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L123)
+
+## API
 TODO
 
 ## License
