@@ -1,121 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web-Demuxer</title>
-  <meta name="description" content="Web Demuxer Design for WebCodecs, using ffmpeg/libavformat & WebAssembly to demux media files">
+  <title>Web-Demuxer: Demux media files in the browser using WebAssembly</title>
+  <meta name="description" content="Demux media files in the browser using WebAssembly, designed for WebCodecs">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
 </head>
+
 <body>
-  <input type="number" name="" id="timestamp">
-  <input type="file" id="file">
-  <button id="seek">seek</button>
-  <button id="play">play</button>
-  <canvas id="canvas" width="640px" height="360px"></canvas>
+  <header class="container">
+    <hgroup>
+      <h1>Web-Demuxer</h1>
+      <p>Demux media files in the browser using WebAssembly, designed for WebCodecs.</p>
+    </hgroup>
+    <nav>
+      <ul>
+        <li>
+          <details class="dropdown">
+            <summary role="button" class="secondary">Examples</summary>
+            <ul>
+              <li><a href="#example-seek">Seek Video Frame</a></li>
+              <li><a href="#example-play">Play Video</a></li>
+            </ul>
+          </details>
+        </li>
+        <li>
+          <details class="dropdown">
+            <summary role="button" class="secondary">Docs</summary>
+            <ul>
+              <li><a href="https://github.com/ForeverSc/web-demuxer/blob/main/README.md#install" target="_blank">English</a></li>
+              <li><a href="https://github.com/ForeverSc/web-demuxer/blob/main/README_CN.md#install" target="_blank">中文</a></li>
+            </ul>
+          </details>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <main class="container">
+    <section>
+      <h2>Purpose</h2>
+      <p>WebCodecs only provide the ability to decode, but not to demux. mp4box.js is cool, but it only supports mp4 demux. Web-Demuxer aims to support as many multimedia formats as possible at once.</p>
+    </section>
+    <section>
+      <h2>Features</h2>
+      <ul>
+        <li>🪄 Specifically designed for WebCodecs, the API is very friendly for WebCodecs development, you can easily realize the media file demux.</li>
+        <li>📦 One-time support for a variety of media formats, such as mov/mp4/mkv/webm/flv/m4v/wmv/avi, etc.</li>
+        <li>🧩 Support for customized packaging, you can adjust the configuration, packaged in a specified format demuxer</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Examples</h2>
+      <section id="example-seek">
+        <hgroup>
+          <h3>Seek Video Frame</h3>
+          <p>Select a video file and enter the point in time you want to seek (default is 0)</p>
+        </hgroup>
+        <card>
+          <fieldset role="group">
+            <input type="file" id="example-seek-file">
+            <input type="number" id="example-seek-time" placeholder="Enter the seek time point in seconds">
+            <button id="example-seek-btn">Seek</button>
+          </fieldset>
+          <canvas id="example-seek-canvas" width="800px" height="450px"></canvas>
+        </card>
+        <section id="example-play">
+          <hgroup>
+            <h3>Play Video</h3>
+            <p>Select a video file and enter the playback start and playback end points (default playback from beginning to end)</p>
+          </hgroup>
+          <card>
+            <fieldset role="group">
+              <input type="file" id="example-play-file">
+              <input type="number" id="example-play-start-time" placeholder="Enter start time point in seconds">
+              <input type="number" id="example-play-end-time" placeholder="Enter end time point in seconds">
+              <button id="example-play-btn">Play</button>
+            </fieldset>
+            <canvas id="example-play-canvas" width="800px" height="450px"></canvas>
+          </card>
+        </section>
+      </section>
+    </section>
 
+  </main>
   <script type="module">
-  import { WebDemuxer } from './src'
+    (async () => {
+      const { WebDemuxer } = import.meta.env.DEV ? await import('./src') : await import('https://cdn.jsdelivr.net/npm/web-demuxer@latest/dist/web-demuxer.js')
 
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+      const demuxer = new WebDemuxer({
+        wasmLoaderPath: !import.meta.env.DEV ? "http://localhost:5173/src/lib/ffmpeg.js" : "https://cdn.jsdelivr.net/npm/web-demuxer@1.0.0/dist/wasm-files/ffmpeg.js",
+      })
 
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-  const demuxer = new WebDemuxer({
-    wasmLoaderPath: "http://localhost:5173/src/lib/ffmpeg.js",
-  })
+      document.getElementById('example-seek-btn').addEventListener('click', async (e) => {
+        const file = document.getElementById('example-seek-file').files[0]
+        const seekTime = document.getElementById('example-seek-time').value || 0
+        const canvas = document.getElementById("example-seek-canvas");
+        const ctx = canvas.getContext("2d");
 
-  document.getElementById('play').addEventListener('click', async () => {
-    const file = document.getElementById('file').files[0]
-    const timestamp = document.getElementById('timestamp').value
+        await demuxer.load(file);
 
-    await demuxer.load(file)
+        const videoDecoderConfig = await demuxer.getVideoDecoderConfig();
+        const videoChunk = await demuxer.seekEncodedVideoChunk(seekTime);
 
-    const videoDecoderConfig = await demuxer.getVideoDecoderConfig()
-    const decoder = new VideoDecoder({
-      output: (frame) => {
-        const scale = Math.min(canvas.width / frame.displayWidth, canvas.height / frame.displayHeight)
-        ctx.drawImage(frame, 0, 0, frame.displayWidth * scale, frame.displayHeight * scale);
-        frame.close()
-      },
-      error: (e)=> {
-        console.error('video decoder error:', e)
+        const decoder = new VideoDecoder({
+          output: (frame) => {
+            const scale = Math.min(canvas.width / frame.displayWidth, canvas.height / frame.displayHeight);
+            ctx.drawImage(frame, 0, 0, frame.displayWidth * scale, frame.displayHeight * scale);
+            frame.close();
+          },
+          error: (e) => {
+            console.error('video decoder error:', e);
+          }
+        });
+
+        decoder.configure(videoDecoderConfig);
+        decoder.decode(videoChunk);
+        decoder.flush();
+      })
+
+      document.getElementById('example-play-btn').addEventListener('click', async () => {
+        const file = document.getElementById('example-play-file').files[0];
+        const startTime = document.getElementById('example-play-start-time').value || 0;
+        const endTime = document.getElementById('example-play-end-time').value || 0;
+        const canvas = document.getElementById("example-play-canvas");
+        const ctx = canvas.getContext("2d");
+
+        await demuxer.load(file);
+
+        const videoDecoderConfig = await demuxer.getVideoDecoderConfig();
+        const decoder = new VideoDecoder({
+          output: (frame) => {
+            const scale = Math.min(canvas.width / frame.displayWidth, canvas.height / frame.displayHeight);
+            ctx.drawImage(frame, 0, 0, frame.displayWidth * scale, frame.displayHeight * scale);
+            frame.close();
+          },
+          error: (e) => {
+            console.error('video decoder error:', e);
+          }
+        })
+
+        decoder.configure(videoDecoderConfig)
+
+        const reader = demuxer.readAVPacket(startTime, endTime).getReader()
+
+        reader.read().then(async function processPacket({ done, value }) {
+          if (done) {
+            decoder.flush();
+            console.log('read finished');
+            return
+          }
+
+          const videoChunk = demuxer.genEncodedVideoChunk(value);
+
+          decoder.decode(videoChunk);
+
+          await wait(1000 / 30) // 30fps, wait for frame decode and draw
+
+          return reader.read().then(processPacket)
+        });
+      });
+
+      function wait(time) {
+        return new Promise((resolve) => {
+          setTimeout(resolve, time)
+        });
       }
-    })
 
-    decoder.configure(videoDecoderConfig)
 
-    const reader = demuxer.readAVPacket().getReader()
-
-    reader.read().then(async function processPacket({ done, value}) {
-      if (done) {
-        decoder.flush()
-        console.log('main process packet done')
-        return
-      }
-
-      const videoChunk = demuxer.genEncodedVideoChunk(value)
-
-      decoder.decode(videoChunk)
-
-      await sleep(1000 / 30)
-
-      return reader.read().then(processPacket)
-    })
-
-  })
-
-  document.getElementById('seek').addEventListener('click', async (e) => {
-    const file = document.getElementById('file').files[0]
-    const timestamp = document.getElementById('timestamp').value
-
-    await demuxer.load(file)
-
-    // const audioConfig = await demuxer.getAudioDecoderConfig()
-    // AudioDecoder.isConfigSupported(audioConfig).then(res => {
-    //   console.log('audio config supported:', res)
-    // })
-    // console.log('audioConfig', audioConfig)
-
-    // demuxer.getAudioStream().then(res => {
-    //   console.log('audio stream:', res)
-    // }).catch(e => {
-    //   console.error('audio stream error:', e)
-    // })
-
-    // demuxer.seekAudioPacket(10).then(res => {
-    //   console.log('audio chunk:', res)
-    // }).catch(e => {
-    //   console.error('audio chunk error:', e)
-    // })
-
-    console.time('decoder config')
-    const videoDecoderConfig = await demuxer.getVideoDecoderConfig()
-    console.timeEnd('decoder config')
-    console.log('video decoder config:', videoDecoderConfig)
-    console.time('chunk')
-    const videoChunk = await demuxer.seekEncodedVideoChunk(timestamp)
-    console.timeEnd('chunk')
-    console.log('videoChunk', videoChunk)
-
-    const decoder = new VideoDecoder({
-      output: (frame) => {
-        console.log('decode frame:', frame)
-        const scale = Math.min(canvas.width / frame.displayWidth, canvas.height / frame.displayHeight)
-        ctx.drawImage(frame, 0, 0, frame.displayWidth * scale, frame.displayHeight * scale);
-        frame.close()
-      },
-      error: (e)=> {
-        console.error('video decoder error:', e)
-      }
-    })
-
-    decoder.configure(videoDecoderConfig)
-    decoder.decode(videoChunk)
-    decoder.flush()
-  })
+    })();
   </script>
-  
 </body>
+
 </html>
