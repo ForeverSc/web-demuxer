@@ -418,14 +418,12 @@ int EMSCRIPTEN_KEEPALIVE read_av_packet(int msg_id, const char *filename, double
     {
         if (packet->stream_index == stream_index)
         {
-            int64_t packet_timestamp = av_rescale_q(packet->pts, fmt_ctx->streams[stream_index]->time_base, AV_TIME_BASE_Q);
-
             if (end > 0)
             {
                 int64_t end_timestamp = (int64_t)(end * AV_TIME_BASE);
-                int64_t rescaled_end_time_stamp = av_rescale_q(end_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
+                int64_t rescaled_end_timestamp = av_rescale_q(end_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
 
-                if (packet_timestamp > rescaled_end_time_stamp) {
+                if (packet->pts > rescaled_end_timestamp) {
                     break;
                 }
             }

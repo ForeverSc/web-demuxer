@@ -337,10 +337,6 @@ export class WebDemuxer {
     );
   }
 
-  // public readPackets() {
-  //   // TODO: read video and audio packets together
-  // }
-
   // =========== custom api for webcodecs ===========
 
   public genVideoDecoderConfig(avStream: WebAVStream): VideoDecoderConfig {
