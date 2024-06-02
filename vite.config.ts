@@ -2,6 +2,7 @@ import { resolve } from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 import babel from "@rollup/plugin-babel";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 export default defineConfig(() => ({
   build: {
@@ -27,5 +28,15 @@ export default defineConfig(() => ({
       ],
     },
   },
-  plugins: [dts({ rollupTypes: true })],
+  plugins: [
+    dts({ rollupTypes: true }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'src/lib/*.{js,wasm}',
+          dest: 'wasm-files'
+        }
+      ]
+    })
+  ],
 }));
