@@ -1,7 +1,7 @@
 {
   "name": "web-demuxer",
   "version": "1.0.0",
-  "description": "Web Demuxer Design for WebCodecs, using ffmpeg/libavformat & WebAssembly to demux media files",
+  "description": "Demux media files in the browser using WebAssembly, designed for WebCodecs",
   "type": "module",
   "files": [
     "dist"
@@ -61,8 +61,17 @@
     "node": ">=18",
     "pnpm": ">=8"
   },
+  "author": "ForeverSc",
   "repository": {
     "type": "git",
     "url": "https://github.com/ForeverSc/web-demuxer"
-  }
+  },
+  "keywords": [
+    "webcodecs",
+    "demuxer",
+    "demux",
+    "video",
+    "audio",
+    "media"
+  ]
 }
