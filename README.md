@@ -20,7 +20,8 @@ npm install web-demuxer
 import { WebDemuxer } from "web-demuxer"
 
 const demuxer = new WebDemuxer({
-  wasmLoaderPath: "", // wasm file path
+  // ⚠️ you need to put the dist/wasm-files file in the npm package into a static directory like public, making sure that the js and wasm in wasm-files are in the same directory
+  wasmLoaderPath: "https://cdn.jsdelivr.net/npm/web-demuxer@latest/dist/wasm-files/ffmpeg.js",
 })
 
 // Take the example of seeking a video frame at a specified point in time
@@ -50,10 +51,19 @@ async function seek(time) {
 ```
 
 ## Examples
-- [Seek Video Frame](https://foreversc.github.io/web-demuxer/#example-seek): [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L96)
-- [Play Video](https://foreversc.github.io/web-demuxer/#example-play): [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L123)
+- [Seek Video Frame](https://foreversc.github.io/web-demuxer/#example-seek) ｜ [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L96)
+- [Play Video](https://foreversc.github.io/web-demuxer/#example-play) ｜ [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L123)
 
 ## API
+TODO: To be added, you can first look at the specific implementation in `src/web-demuxer.ts` with the `index.html` use case
+
+### `getVideoDecoderConfig`
+### `seekEncodedVideoChunk`
+### `readAVPacket`
+### `getAVStream`
+### `getAVPacket`
+
+## Custom Demuxer
 TODO
 
 ## License
