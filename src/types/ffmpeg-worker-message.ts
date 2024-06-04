@@ -34,14 +34,14 @@ export interface GetAVStreamsMessageData {
 
 export interface GetAVPacketMessageData {
   file: File;
-  timestamp: number;
+  time: number;
   streamType: AVMediaType;
   streamIndex: number;
 }
 
 export interface GetAVPacketsMessageData {
   file: File;
-  timestamp: number;
+  time: number;
 }
 
 export interface ReadAVPacketMessageData {

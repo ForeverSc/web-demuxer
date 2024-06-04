@@ -66,6 +66,11 @@ export class WebDemuxer {
     });
   }
 
+  /**
+   * load a file
+   * @param file file to load
+   * @returns load status
+   */
   public async load(file: File) {
     const status = await this.ffmpegWorkerLoadStatus;
 
@@ -74,13 +79,21 @@ export class WebDemuxer {
     return status;
   }
 
+  /**
+   * destroy the instance
+   */
   public destroy() {
     this.file = undefined;
     this.ffmpegWorker.terminate();
   }
 
   // ================ base api ================
-
+  /**
+   * get av stream
+   * @param streamType
+   * @param streamIndex 
+   * @returns 
+   */
   public getAVStream(
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
@@ -115,6 +128,9 @@ export class WebDemuxer {
     });
   }
 
+  /**
+   * get all av streams
+   */
   public getAVStreams(): Promise<WebAVStream[]> {
     return new Promise((resolve, reject) => {
       if (!this.file) {
@@ -144,8 +160,15 @@ export class WebDemuxer {
     });
   }
 
+  /**
+   * get av packet
+   * @param time 
+   * @param streamType 
+   * @param streamIndex 
+   * @returns 
+   */
   public getAVPacket(
-    timestamp: number,
+    time: number,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
   ): Promise<WebAVPacket> {
@@ -175,15 +198,20 @@ export class WebDemuxer {
       this.ffmpegWorker.addEventListener("message", msgListener);
       this.post(FFMpegWorkerMessageType.GetAVPacket, {
         file: this.file,
-        timestamp,
+        time,
         streamType,
         streamIndex,
       });
     });
   }
 
+  /**
+   * get av packets in all streams
+   * @param time 
+   * @returns 
+   */
   public getAVPackets(
-    timestamp: number,
+    time: number,
   ): Promise<WebAVPacket[]> {
     return new Promise((resolve, reject) => {
       if (!this.file) {
@@ -211,19 +239,22 @@ export class WebDemuxer {
       this.ffmpegWorker.addEventListener("message", msgListener);
       this.post(FFMpegWorkerMessageType.GetAVPackets, {
         file: this.file,
-        timestamp,
+        time,
       });
     });
   }
 
   /**
-   * start => ReadAVPacket => AVPacketStream => queue
-   * pull => ReadNextAVPacket
-   * cancel => StopReadAVPacket
+   * read av packet
+   * @param start start time
+   * @param end end time
+   * @param streamType 
+   * @param streamIndex 
+   * @returns 
    */
   public readAVPacket(
-    start: number,
-    end: number,
+    start = 0,
+    end = 0,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
   ): ReadableStream<WebAVPacket> {
@@ -303,34 +334,24 @@ export class WebDemuxer {
     return this.getAVStream(AVMediaType.AVMEDIA_TYPE_AUDIO, streamIndex);
   }
 
-  public async getStreams() {
-    // TODO: get all streams in one call
-    const videoStream = await this.getVideoStream();
-    const audioStream = await this.getAudioStream();
-
-    return [videoStream, audioStream];
+  public seekVideoPacket(time: number) {
+    return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_VIDEO);
   }
 
-  public seekVideoPacket(timestamp: number) {
-    return this.getAVPacket(timestamp, AVMediaType.AVMEDIA_TYPE_VIDEO);
+  public seekAudioPacket(time: number) {
+    return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_AUDIO);
   }
 
-  public seekAudioPacket(timestamp: number) {
-    return this.getAVPacket(timestamp, AVMediaType.AVMEDIA_TYPE_AUDIO);
-  }
-
-  public readVideoPacket(timestamp: number, start: number, end: number) {
+  public readVideoPacket(start?: number, end?: number) {
     return this.readAVPacket(
-      timestamp,
       start,
       end,
       AVMediaType.AVMEDIA_TYPE_VIDEO,
     );
   }
 
-  public readAudioPacket(timestamp: number, start: number, end: number) {
+  public readAudioPacket(start?: number, end?: number) {
     return this.readAVPacket(
-      timestamp,
       start,
       end,
       AVMediaType.AVMEDIA_TYPE_AUDIO,

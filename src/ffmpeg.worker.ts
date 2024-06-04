@@ -49,13 +49,13 @@ self.addEventListener("message", async function (e) {
     } else if (type === "GetAVPacket") {
       const {
         file,
-        timestamp,
+        time,
         streamType,
         streamIndex,
       } = data;
       const result = Module.getAVPacket(
         file,
-        timestamp,
+        time,
         streamType,
         streamIndex,
       );
@@ -71,9 +71,9 @@ self.addEventListener("message", async function (e) {
     } else if (type === 'GetAVPackets') {
       const {
         file,
-        timestamp,
+        time,
       } = data;
-      const result = Module.getAVPackets(file, timestamp);
+      const result = Module.getAVPackets(file, time);
 
       self.postMessage(
         {
