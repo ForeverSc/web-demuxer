@@ -7,13 +7,10 @@
 
 /**
  * avc codec string
- *
- * ff_isom_write_avcc
- *
- * version(8)
- * profile(8)
- * profile compat(8)
- * level(8)
+ * 
+ * inspired by:
+ *  - ff_isom_write_avcc
+ * 
  */
 void set_avc_codec_string(char *str, size_t str_size, AVCodecParameters *par)
 {
@@ -44,17 +41,13 @@ void set_avc_codec_string(char *str, size_t str_size, AVCodecParameters *par)
 
 /**
  * hevc codec string
- *
- *  https://chromium.googlesource.com/chromium/src/media/+/refs/heads/main/base/video_codec_string_parsers.cc#549
- *  const int kMaxHevcCodecIdLength =
-      5 +  // 'hev1.' or 'hvc1.' prefix (5 chars)
-      4 +  // profile, e.g. '.A12' (max 4 chars)
-      9 +  // profile_compatibility, dot + 32-bit hex number (max 9 chars)
-      5 +  // tier and level, e.g. '.H120' (max 5 chars)
-      18;  // up to 6 constraint bytes, bytes are dot-separated and hex-encoded.
-
-    codec_str: https://github.com/gpac/mp4box.js/blob/fbc03484283e389eae011c99a7a21a09a5c45f40/src/box-codecs.js#L106
-*/
+ * 
+ * inspired by:
+ *  - ff_isom_write_hvcc
+ *  - https://chromium.googlesource.com/chromium/src/media/+/refs/heads/main/base/video_codec_string_parsers.cc#549
+ *  - https://github.com/gpac/mp4box.js/blob/fbc03484283e389eae011c99a7a21a09a5c45f40/src/box-codecs.js#L106
+ * 
+ */
 void set_hevc_codec_string(char *str, size_t str_size, AVCodecParameters *par)
 {
     av_strlcpy(str, "hev1", str_size);
@@ -132,8 +125,12 @@ void set_hevc_codec_string(char *str, size_t str_size, AVCodecParameters *par)
 }
 
 /**
- * av1
- *
+ * av1 codec string
+ * 
+ * inspired by:
+ *  - ff_isom_write_av1c
+ *  - https://github.com/gpac/mp4box.js/blob/fbc03484283e389eae011c99a7a21a09a5c45f40/src/box-codecs.js#L251
+ * 
  */
 void set_av1_codec_string(char *str, size_t str_size, AVCodecParameters *par)
 {
@@ -407,7 +404,11 @@ static int get_vpcc_features(AVCodecParameters *par,
 }
 
 /**
- * vp9
+ * vp9 codec string
+ * 
+ * inspired by:
+ *  - ff_isom_write_vpcc
+ * 
  */
 void set_vp9_codec_string(char *str, size_t str_size, AVCodecParameters *par, AVRational *frame_rate)
 {
