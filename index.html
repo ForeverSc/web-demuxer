@@ -23,6 +23,7 @@
             <ul>
               <li><a href="#example-seek">Seek Video Frame</a></li>
               <li><a href="#example-play">Play Video</a></li>
+              <li><a href="#example-get-all-video-packets">Get All Video Packets</a></li>
             </ul>
           </details>
         </li>
@@ -30,8 +31,10 @@
           <details class="dropdown">
             <summary role="button" class="secondary">Docs</summary>
             <ul>
-              <li><a href="https://github.com/ForeverSc/web-demuxer/blob/main/README.md#install" target="_blank">English</a></li>
-              <li><a href="https://github.com/ForeverSc/web-demuxer/blob/main/README_CN.md#install" target="_blank">中文</a></li>
+              <li><a href="https://github.com/ForeverSc/web-demuxer/blob/main/README.md#install"
+                  target="_blank">English</a></li>
+              <li><a href="https://github.com/ForeverSc/web-demuxer/blob/main/README_CN.md#install"
+                  target="_blank">中文</a></li>
             </ul>
           </details>
         </li>
@@ -41,14 +44,17 @@
   <main class="container">
     <section>
       <h2>Purpose</h2>
-      <p>WebCodecs only provide the ability to decode, but not to demux. mp4box.js is cool, but it only supports mp4 demux. Web-Demuxer aims to support as many multimedia formats as possible at once.</p>
+      <p>WebCodecs only provide the ability to decode, but not to demux. mp4box.js is cool, but it only supports mp4
+        demux. Web-Demuxer aims to support as many multimedia formats as possible at once.</p>
     </section>
     <section>
       <h2>Features</h2>
       <ul>
-        <li>🪄 Specifically designed for WebCodecs, the API is very friendly for WebCodecs development, you can easily realize the media file demux.</li>
+        <li>🪄 Specifically designed for WebCodecs, the API is very friendly for WebCodecs development, you can easily
+          realize the media file demux.</li>
         <li>📦 One-time support for a variety of media formats, such as mov/mp4/mkv/webm/flv/m4v/wmv/avi, etc.</li>
-        <li>🧩 Support for customized packaging, you can adjust the configuration, packaged in a specified format demuxer</li>
+        <li>🧩 Support for customized packaging, you can adjust the configuration, packaged in a specified format
+          demuxer</li>
       </ul>
     </section>
     <section>
@@ -69,7 +75,8 @@
         <section id="example-play">
           <hgroup>
             <h3>Play Video</h3>
-            <p>Select a video file and enter the playback start and playback end points (default playback from beginning to end)</p>
+            <p>Select a video file and enter the playback start and playback end points (default playback from beginning
+              to end)</p>
           </hgroup>
           <card>
             <fieldset role="group">
@@ -79,6 +86,18 @@
               <button id="example-play-btn">Play</button>
             </fieldset>
             <canvas id="example-play-canvas" width="800px" height="450px"></canvas>
+          </card>
+        </section>
+        <section id="example-get-all-video-packets">
+          <hgroup>
+            <h3>Get All Video Packets</h3>
+            <p>Select a video file and get all video packets, open devtools to see console output</p>
+          </hgroup>
+          <card>
+            <fieldset role="group">
+              <input type="file" id="example-get-all-video-packets-file">
+              <button id="example-get-all-video-packets-btn">Get</button>
+            </fieldset>
           </card>
         </section>
       </section>
@@ -163,12 +182,38 @@
         });
       });
 
+      document.getElementById('example-get-all-video-packets-btn').addEventListener('click', async () => {
+        const file = document.getElementById('example-get-all-video-packets-file').files[0];
+
+        async function getAllPackets(file) {
+          await demuxer.load(file)
+          return new Promise((resolve) => {
+            const videoPackets = []
+            const reader = demuxer.readAVPacket().getReader()
+
+            reader.read().then(async function processAVPacket({ done, value }) {
+              if (done) {
+                resolve(videoPackets) // all packets read finished
+                return
+              }
+
+              videoPackets.push(value) // get one video packet
+              // and you can generate video chunk for video decoder
+              // const videoChunk = demuxer.genEncodedVideoChunk(value)
+
+              return reader.read().then(processAVPacket)
+            })
+          })
+        }
+
+        console.log('all video packets:', await getAllPackets(file));
+      });
+
       function wait(time) {
         return new Promise((resolve) => {
           setTimeout(resolve, time)
         });
       }
-
 
     })();
   </script>
