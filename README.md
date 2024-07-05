@@ -168,8 +168,6 @@ destroy(): void
 ```
 Destroys the instance and releases the worker.
 
-Here is the translation of the provided text into English:
-
 ## Custom Demuxer
 Currently, two versions of the demuxer are provided by default to support different formats:
 - `dist/wasm-files/ffmpeg.js`: Full version (gzip: 941 kB), larger in size, supports mov, mp4, m4a, 3gp, 3g2, mj2, avi, flv, matroska, webm, m4v, mpeg, asf
