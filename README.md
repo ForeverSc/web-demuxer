@@ -118,7 +118,7 @@ Returns a `ReadableStream` for streaming packet data.
 Parameters:
 - `start`: The start time for reading, in seconds, defaults to 0, reading packets from the beginning.
 - `end`: The end time for reading, in seconds, defaults to 0, reading until the end of the file.
-- `streamType`: The type of media stream, defaults to 0, which is the video stream.
+- `streamType`: The type of media stream, defaults to 0, which is the video stream. 1 is audio stream. See `AVMediaType` for more details.
 - `streamIndex`: The index of the media stream, defaults to -1, which is to automatically select.
 
 ```typescript
@@ -127,7 +127,7 @@ getAVStream(streamType?: AVMediaType, streamIndex?: number): Promise<WebAVStream
 Gets information about a specified stream in the media file.
 
 Parameters:
-- `streamType`: The type of media stream, defaults to 0, which is the video stream.
+- `streamType`: The type of media stream, defaults to 0, which is the video stream. 1 is audio stream. See `AVMediaType` for more details.
 - `streamIndex`: The index of the media stream, defaults to -1, which is to automatically select.
 
 Simplified methods based on the semantics of `getAVStream`:
@@ -146,7 +146,7 @@ Gets the data at a specified time point in the media file.
 
 Parameters:
 - `time`: Required, in seconds.
-- `streamType`: The type of media stream, defaults to 0, which is the video stream.
+- `streamType`: The type of media stream, defaults to 0, which is the video stream. 1 is audio stream. See `AVMediaType` for more details.
 - `streamIndex`: The index of the media stream, defaults to -1, which is to automatically select.
 
 Simplified methods based on the semantics of `getAVPacket`:

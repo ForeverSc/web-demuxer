@@ -117,7 +117,7 @@ readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex
 参数:
 - `start`: 读取开始时间点，单位为s，默认值为0，从头开始读取packet
 - `end`: 读取结束时间点，单位为s, 默认值为0，读取到文件末尾
-- `streamType`: 媒体流类型，默认值为0, 即视频流
+- `streamType`: 媒体流类型，默认值为0, 即视频流，1为音频流。其他具体见`AVMediaType`
 - `streamIndex`: 媒体流索引，默认值为-1，即自动选择
 
 ```typescript
@@ -126,7 +126,7 @@ getAVStream(streamType?: AVMediaType, streamIndex?: number): Promise<WebAVStream
 获取媒体文件中指定stream的信息
 
 参数: 
-- `streamType`: 媒体流类型，默认值为0, 即视频流
+- `streamType`: 媒体流类型，默认值为0, 即视频流，1为音频流。其他具体见`AVMediaType`
 - `streamIndex`: 媒体流索引，默认值为-1，即自动选择
 
 基于`getAVStream`的语义简化方法:
@@ -145,7 +145,7 @@ getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number): Promi
 
 参数:
 - `time`: 必填，单位为s
-- `streamType`: 媒体流类型，默认值为0, 即视频流
+- `streamType`: 媒体流类型，默认值为0, 即视频流，1为音频流。其他具体见`AVMediaType`
 - `streamIndex`: 媒体流索引，默认值为-1，即自动选择
 
 基于`getAVPacket`的语义简化方法:
