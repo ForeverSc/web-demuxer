@@ -26,6 +26,7 @@ typedef struct {
     int id;
     double start_time;
     double duration;
+    int64_t nb_frames;
     WebAVCodecParameters *codecpar;
 } WebAVStream;
 

@@ -86,6 +86,7 @@ WebAVStream *EMSCRIPTEN_KEEPALIVE get_av_stream(const char *filename, int type, 
     stream->id = raw_stream->id;
     stream->start_time = raw_stream->start_time * av_q2d(raw_stream->time_base);
     stream->duration = raw_stream->duration > 0 ? raw_stream->duration * av_q2d(raw_stream->time_base) : fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q); // TODO: some file type can not get stream duration
+    stream->nb_frames = raw_stream->nb_frames;
 
     avformat_close_input(&fmt_ctx);
 

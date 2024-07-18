@@ -31,6 +31,7 @@ WEB_DEMUXER_ARGS = \
 		-s EXPORTED_RUNTIME_METHODS=cwrap,getValue,UTF8ToString \
 		-s EXPORTED_FUNCTIONS=_free \
 		-s ASYNCIFY \
+		-s WASM_BIGINT \
 		-s ALLOW_MEMORY_GROWTH=1
 
 clean:

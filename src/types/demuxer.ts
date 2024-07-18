@@ -23,6 +23,7 @@ export interface WebAVStream {
   id: number;
   start_time: number;
   duration: number;
+  nb_frames: number;
   codecpar: WebAVCodecParameters;
 }
 
