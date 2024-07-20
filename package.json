@@ -1,6 +1,6 @@
 {
   "name": "web-demuxer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Demux media files in the browser using WebAssembly, designed for WebCodecs",
   "type": "module",
   "files": [
@@ -32,7 +32,8 @@
     "lint": "lint-staged",
     "prepublishOnly": "npm run build",
     "release": "release-it",
-    "prepare": "husky"
+    "prepare": "husky",
+    "stop": "docker-compose down"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
