@@ -419,8 +419,9 @@ void set_vp9_codec_string(char *str, size_t str_size, AVCodecParameters *par, AV
     int ret = get_vpcc_features(par, NULL, 0, frame_rate, &vpcc);
 
     if (ret == 0)
-        av_strlcatf(str, str_size, ".%02d.%02d.%02d",
-                    vpcc.profile, vpcc.level, vpcc.bitdepth);
+        av_strlcatf(str, str_size, 
+                ".%02d.%02d.%02d.%02d.%02d.%02d.%02d.%02d",
+                vpcc.profile, vpcc.level, vpcc.bitdepth, vpcc.chroma_subsampling, par->color_primaries, par->color_trc, par->color_space, vpcc.full_range_flag);
 }
 
 // ================== Export ====================
