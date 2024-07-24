@@ -100,7 +100,7 @@ void set_hevc_codec_string(char *str, size_t str_size, AVCodecParameters *par)
     av_strlcatf(str, str_size, ".%s%d.%x.%s%d",
                 general_profile_space_str,
                 general_profile_idc,
-                final_general_profile_compatibility_flags, // ?? why
+                final_general_profile_compatibility_flags,
                 general_tier_flag == 0 ? "L" : "H",
                 general_level_idc);
 
@@ -129,6 +129,7 @@ void set_hevc_codec_string(char *str, size_t str_size, AVCodecParameters *par)
  * 
  * inspired by:
  *  - ff_isom_write_av1c
+ *  - https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
  *  - https://github.com/gpac/mp4box.js/blob/fbc03484283e389eae011c99a7a21a09a5c45f40/src/box-codecs.js#L251
  * 
  */
@@ -165,13 +166,12 @@ void set_av1_codec_string(char *str, size_t str_size, AVCodecParameters *par)
 
     av_strlcatf(str, str_size, ".%01u.%02u%s.%02u",
                 profile, level, tier ? "H" : "M", bitdepth);
-
-    // if (color_description_present_flag)
+    
+    // if (par->color_primaries != 2 && par->color_trc != 2 && par->color_space != 2)
     //     av_strlcatf(str, str_size, ".%01u.%01u%01u%01u.%02u.%02u.%02u.%01u",
-    //                 seq.monochrome,
-    //                 seq.chroma_subsampling_x, seq.chroma_subsampling_y, seq.chroma_sample_position,
-    //                 seq.color_primaries, seq.transfer_characteristics, seq.matrix_coefficients,
-    //                 seq.color_range);
+    //                 monochrome,
+    //                 chroma_subsampling_x, chroma_subsampling_y, chroma_sample_position,
+    //                 par->color_primaries, par->color_trc, par->color_space, par->color_range);
 }
 
 // ================== VP9 ====================
@@ -314,47 +314,7 @@ static int get_vp9_level(AVCodecParameters *par, AVRational *frame_rate)
     }
 }
 
-static void parse_bitstream(GetBitContext *gb, int *profile, int *bit_depth)
-{
-    int keyframe, invisible;
-
-    if (get_bits(gb, 2) != 0x2) // frame marker
-        return;
-    *profile = get_bits1(gb);
-    *profile |= get_bits1(gb) << 1;
-    if (*profile == 3)
-        *profile += get_bits1(gb);
-
-    if (get_bits1(gb))
-        return;
-
-    keyframe = !get_bits1(gb);
-    invisible = !get_bits1(gb);
-    get_bits1(gb);
-
-    if (keyframe)
-    {
-        if (get_bits(gb, 24) != VP9_SYNCCODE)
-            return;
-    }
-    else
-    {
-        int intraonly = invisible ? get_bits1(gb) : 0;
-        if (!intraonly || get_bits(gb, 24) != VP9_SYNCCODE)
-            return;
-        if (*profile < 1)
-        {
-            *bit_depth = 8;
-            return;
-        }
-    }
-
-    *bit_depth = *profile <= 1 ? 8 : 10 + get_bits1(gb) * 2;
-}
-
-static int get_vpcc_features(AVCodecParameters *par,
-                             const uint8_t *data, int len,
-                             AVRational *frame_rate, VPCC *vpcc)
+static int get_vpcc_features(AVCodecParameters *par, AVRational *frame_rate, VPCC *vpcc)
 {
     int profile = par->profile;
     int level = par->level == AV_LEVEL_UNKNOWN ? get_vp9_level(par, frame_rate) : par->level;
@@ -366,17 +326,6 @@ static int get_vpcc_features(AVCodecParameters *par,
 
     if (bit_depth < 0 || vpx_chroma_subsampling < 0)
         return AVERROR_INVALIDDATA;
-
-    if (len && (profile == AV_PROFILE_UNKNOWN || !bit_depth))
-    {
-        GetBitContext gb;
-
-        int ret = init_get_bits8(&gb, data, len);
-        if (ret < 0)
-            return ret;
-
-        parse_bitstream(&gb, &profile, &bit_depth);
-    }
 
     if (profile == AV_PROFILE_UNKNOWN && bit_depth)
     {
@@ -408,6 +357,7 @@ static int get_vpcc_features(AVCodecParameters *par,
  * 
  * inspired by:
  *  - ff_isom_write_vpcc
+ *  - https://github.com/webmproject/vp9-dash/blob/main/VPCodecISOMediaFileFormatBinding.md#codecs-parameter-string
  * 
  */
 void set_vp9_codec_string(char *str, size_t str_size, AVCodecParameters *par, AVRational *frame_rate)
@@ -416,7 +366,7 @@ void set_vp9_codec_string(char *str, size_t str_size, AVCodecParameters *par, AV
 
     VPCC vpcc;
 
-    int ret = get_vpcc_features(par, NULL, 0, frame_rate, &vpcc);
+    int ret = get_vpcc_features(par, frame_rate, &vpcc);
 
     if (ret == 0)
         av_strlcatf(str, str_size, 
