@@ -13,6 +13,14 @@
     ".": {
       "import": "./dist/web-demuxer.js",
       "require": "./dist/web-demuxer.umd.cjs"
+    },
+    "./wasm": {
+      "import": "./dist/wasm-files/ffmpeg.wasm",
+      "require": "./dist/wasm-files/ffmpeg.wasm"
+    },
+    "./wasm-mini": {
+      "import": "./dist/wasm-files/ffmpeg-mini.wasm",
+      "require": "./dist/wasm-files/ffmpeg-mini.wasm"
     }
   },
   "scripts": {
