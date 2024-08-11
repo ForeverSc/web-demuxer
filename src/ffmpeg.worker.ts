@@ -29,7 +29,7 @@ self.addEventListener("message", async function (e) {
           msgId,
           result,
         },
-        [result.codecpar.extradata.buffer],
+        [result.extradata.buffer],
       );
     } else if (type === 'GetAVStreams') {
      const {
@@ -43,7 +43,7 @@ self.addEventListener("message", async function (e) {
           msgId,
           result,
         },
-        result.map((stream: WebAVStream) => stream.codecpar.extradata.buffer)
+        result.map((stream: WebAVStream) => stream.extradata.buffer)
       );
 
     } else if (type === "GetAVPacket") {

@@ -362,12 +362,12 @@ export class WebDemuxer {
 
   public genVideoDecoderConfig(avStream: WebAVStream): VideoDecoderConfig {
     return {
-      codec: avStream.codecpar.codec_string,
-      codedWidth: avStream.codecpar.width,
-      codedHeight: avStream.codecpar.height,
+      codec: avStream.codec_string,
+      codedWidth: avStream.width,
+      codedHeight: avStream.height,
       description:
-        avStream.codecpar.extradata?.length > 0
-          ? avStream.codecpar.extradata
+        avStream.extradata?.length > 0
+          ? avStream.extradata
           : undefined,
     };
   }
@@ -383,12 +383,12 @@ export class WebDemuxer {
 
   public genAudioDecoderConfig(avStream: WebAVStream): AudioDecoderConfig {
     return {
-      codec: avStream.codecpar.codec_string || "",
-      sampleRate: avStream.codecpar.sample_rate,
-      numberOfChannels: avStream.codecpar.channels,
+      codec: avStream.codec_string || "",
+      sampleRate: avStream.sample_rate,
+      numberOfChannels: avStream.channels,
       description:
-        avStream.codecpar.extradata?.length > 0
-          ? avStream.codecpar.extradata
+        avStream.extradata?.length > 0
+          ? avStream.extradata
           : undefined,
     };
   }

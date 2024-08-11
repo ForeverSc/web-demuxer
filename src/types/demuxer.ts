@@ -3,7 +3,12 @@
  */
 import { AVMediaType } from "./avutil";
 
-export interface WebAVCodecParameters {
+export interface WebAVStream {
+  index: number;
+  id: number;
+  start_time: number;
+  duration: number;
+  nb_frames: number;
   codec_type: AVMediaType;
   codec_id: number;
   codec_string: string;
@@ -16,15 +21,6 @@ export interface WebAVCodecParameters {
   sample_rate: number;
   extradata_size: number;
   extradata: Uint8Array;
-}
-
-export interface WebAVStream {
-  index: number;
-  id: number;
-  start_time: number;
-  duration: number;
-  nb_frames: number;
-  codecpar: WebAVCodecParameters;
 }
 
 export interface WebAVPacket {

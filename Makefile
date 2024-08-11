@@ -17,7 +17,8 @@ DEMUX_ARGS = \
 	--enable-demuxer=mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpegi,asf
 
 WEB_DEMUXER_ARGS = \
-	emcc ./lib/web-demuxer/*.c \
+	emcc ./lib/web-demuxer/*.c ./lib/web-demuxer/*.cpp \
+		-lembind \
 		-I./lib/FFmpeg \
 		-L./lib/FFmpeg/libavformat -lavformat \
 		-L./lib/FFmpeg/libavutil -lavutil \
