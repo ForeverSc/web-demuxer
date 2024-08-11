@@ -91,7 +91,7 @@ self.addEventListener("message", async function (e) {
         streamType,
         streamIndex,
       } = data;
-      const result = Module.readAVPacket(
+      const result = await Module.readAVPacket(
         msgId,
         file,
         start,
