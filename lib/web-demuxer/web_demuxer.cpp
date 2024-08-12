@@ -32,6 +32,7 @@ typedef struct WebAVStream
     int id;
     /** Codec Info from codecpar */
     int codec_type;
+    std::string codec_type_string;
     std::string codec_name;
     std::string codec_string;
     std::string profile;
@@ -58,7 +59,6 @@ typedef struct WebAVStream
     double rotation;
     std::string nb_frames;
     std::vector<Tag> tags;
-
 } WebAVStream;
 
 typedef struct WebAVPacket
@@ -134,6 +134,7 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
     // codecpar info
     AVCodecParameters *par = stream->codecpar;
     web_stream.codec_type = (int)par->codec_type;
+    web_stream.codec_type_string = av_get_media_type_string(par->codec_type);
     web_stream.codec_name = avcodec_descriptor_get(par->codec_id)->name;
 
     char codec_string[40];
@@ -554,6 +555,7 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
         .property("index", &WebAVStream::index)
         .property("id", &WebAVStream::id)
         .property("codec_type", &WebAVStream::codec_type)
+        .property("codec_type_string", &WebAVStream::codec_type_string)
         .property("codec_name", &WebAVStream::codec_name)
         .property("codec_string", &WebAVStream::codec_string)
         .property("profile", &WebAVStream::profile)
