@@ -66,6 +66,30 @@ export class WebDemuxer {
     });
   }
 
+  private getFromWorker<T>(type: FFMpegWorkerMessageType, msgData: FFMpegWorkerMessageData): Promise<T> {
+    return new Promise((resolve, reject) => {
+      if (!this.file) {
+        reject("file is not loaded");
+        return;
+      }
+
+      const msgId = this.msgId;
+      const msgListener = ({ data }: MessageEvent) => {
+        if (data.type === type && data.msgId === msgId) {
+          if (data.errMsg) {
+            reject(data.errMsg);
+          } else {
+            resolve(data.result);
+          }
+          this.ffmpegWorker.removeEventListener("message", msgListener);
+        }
+      };
+
+      this.ffmpegWorker.addEventListener("message", msgListener);
+      this.post(type, msgData, msgId);
+    });
+  }
+
   /**
    * load a file
    * @param file file to load
@@ -92,39 +116,16 @@ export class WebDemuxer {
    * get av stream
    * @param streamType
    * @param streamIndex 
-   * @returns 
+   * @returns WebAVStream
    */
   public getAVStream(
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
   ): Promise<WebAVStream> {
-    return new Promise((resolve, reject) => {
-      if (!this.file) {
-        reject("file is not loaded");
-        return;
-      }
-
-      const msgId = this.msgId;
-      const msgListener = ({ data }: MessageEvent) => {
-        if (
-          data.type === FFMpegWorkerMessageType.GetAVStream &&
-          data.msgId === msgId
-        ) {
-          if (data.errMsg) {
-            reject(data.errMsg);
-          } else {
-            resolve(data.result);
-          }
-          this.ffmpegWorker.removeEventListener("message", msgListener);
-        }
-      };
-
-      this.ffmpegWorker.addEventListener("message", msgListener);
-      this.post(FFMpegWorkerMessageType.GetAVStream, {
-        file: this.file,
-        streamType,
-        streamIndex,
-      });
+    return this.getFromWorker(FFMpegWorkerMessageType.GetAVStream, {
+      file: this.file!,
+      streamType,
+      streamIndex,
     });
   }
 
@@ -132,60 +133,17 @@ export class WebDemuxer {
    * get all av streams
    */
   public getAVStreams(): Promise<WebAVStream[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.file) {
-        reject("file is not loaded");
-        return;
-      }
-
-      const msgId = this.msgId;
-      const msgListener = ({ data }: MessageEvent) => {
-        if (
-          data.type === FFMpegWorkerMessageType.GetAVStreams &&
-          data.msgId === msgId
-        ) {
-          if (data.errMsg) {
-            reject(data.errMsg);
-          } else {
-            resolve(data.result);
-          }
-          this.ffmpegWorker.removeEventListener("message", msgListener);
-        }
-      };
-
-      this.ffmpegWorker.addEventListener("message", msgListener);
-      this.post(FFMpegWorkerMessageType.GetAVStreams, {
-        file: this.file,
-      });
+    return this.getFromWorker(FFMpegWorkerMessageType.GetAVStreams, {
+      file: this.file!,
     });
   }
 
+  /**
+   * get file media info
+   */
   public getMediaInfo() {
-    return new Promise((resolve, reject) => {
-      if (!this.file) {
-        reject("file is not loaded");
-        return;
-      }
-
-      const msgId = this.msgId;
-      const msgListener = ({ data }: MessageEvent) => {
-        if (
-          data.type === FFMpegWorkerMessageType.GetMediaInfo &&
-          data.msgId === msgId
-        ) {
-          if (data.errMsg) {
-            reject(data.errMsg);
-          } else {
-            resolve(data.result);
-          }
-          this.ffmpegWorker.removeEventListener("message", msgListener);
-        }
-      };
-
-      this.ffmpegWorker.addEventListener("message", msgListener);
-      this.post(FFMpegWorkerMessageType.GetMediaInfo, {
-        file: this.file,
-      });
+    return this.getFromWorker(FFMpegWorkerMessageType.GetMediaInfo, {
+      file: this.file!,
     });
   }
 
@@ -194,82 +152,32 @@ export class WebDemuxer {
    * @param time 
    * @param streamType 
    * @param streamIndex 
-   * @returns 
+   * @returns WebAVPacket
    */
   public getAVPacket(
     time: number,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
   ): Promise<WebAVPacket> {
-    return new Promise((resolve, reject) => {
-      if (!this.file) {
-        reject("file is not loaded");
-        return;
-      }
-
-      const msgId = this.msgId;
-      const msgListener = (e: MessageEvent) => {
-        const data = e.data;
-
-        if (
-          data.type === FFMpegWorkerMessageType.GetAVPacket &&
-          data.msgId === msgId
-        ) {
-          if (data.errMsg) {
-            reject(data.errMsg);
-          } else {
-            resolve(data.result);
-          }
-          this.ffmpegWorker.removeEventListener("message", msgListener);
-        }
-      };
-
-      this.ffmpegWorker.addEventListener("message", msgListener);
-      this.post(FFMpegWorkerMessageType.GetAVPacket, {
-        file: this.file,
-        time,
-        streamType,
-        streamIndex,
-      });
+    return this.getFromWorker(FFMpegWorkerMessageType.GetAVPacket, {
+      file: this.file!,
+      time,
+      streamType,
+      streamIndex,
     });
   }
 
   /**
    * get av packets in all streams
    * @param time 
-   * @returns 
+   * @returns WebAVPacket[]
    */
   public getAVPackets(
     time: number,
   ): Promise<WebAVPacket[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.file) {
-        reject("file is not loaded");
-        return;
-      }
-
-      const msgId = this.msgId;
-      const msgListener = (e: MessageEvent) => {
-        const data = e.data;
-
-        if (
-          data.type === FFMpegWorkerMessageType.GetAVPackets &&
-          data.msgId === msgId
-        ) {
-          if (data.errMsg) {
-            reject(data.errMsg);
-          } else {
-            resolve(data.result);
-          }
-          this.ffmpegWorker.removeEventListener("message", msgListener);
-        }
-      };
-
-      this.ffmpegWorker.addEventListener("message", msgListener);
-      this.post(FFMpegWorkerMessageType.GetAVPackets, {
-        file: this.file,
-        time,
-      });
+    return this.getFromWorker(FFMpegWorkerMessageType.GetAVPackets, {
+      file: this.file!,
+      time,
     });
   }
 
@@ -279,7 +187,7 @@ export class WebDemuxer {
    * @param end end time
    * @param streamType 
    * @param streamIndex 
-   * @returns 
+   * @returns ReadableStream<WebAVPacket>
    */
   public readAVPacket(
     start = 0,
