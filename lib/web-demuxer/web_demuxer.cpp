@@ -594,10 +594,10 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
         .field("size", &WebAVPacketList::size)
         .field("packets", &WebAVPacketList::packets);
 
-    function("get_av_stream", &get_av_stream); // TODO: return value policy
-    function("get_av_streams", &get_av_streams);
-    function("get_av_packet", &get_av_packet);
-    function("get_av_packets", &get_av_packets);
+    function("get_av_stream", &get_av_stream, return_value_policy::take_ownership());
+    function("get_av_streams", &get_av_streams, return_value_policy::take_ownership());
+    function("get_av_packet", &get_av_packet, return_value_policy::take_ownership());
+    function("get_av_packets", &get_av_packets, return_value_policy::take_ownership());
     function("read_av_packet", &read_av_packet);
 
     register_vector<uint8_t>("vector<uint8_t>");
