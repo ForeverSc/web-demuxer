@@ -42,7 +42,7 @@ typedef struct WebAVStream
     int channels;
     int sample_rate;
     std::string sample_fmt;
-    int64_t bit_rate;
+    std::string bit_rate;
     int extradata_size;
     std::vector<uint8_t> extradata;
     val get_extradata() const{
@@ -55,7 +55,8 @@ typedef struct WebAVStream
     std::string display_aspect_ratio;
     double start_time;
     double duration;
-    int64_t nb_frames;
+    double rotation;
+    std::string nb_frames;
     std::vector<Tag> tags;
 
 } WebAVStream;
@@ -84,18 +85,21 @@ typedef struct WebAVPacketList
     std::vector<WebAVPacket> packets;
 } WebAVPacketList;
 
-EM_ASYNC_JS(int, send_av_packet, (int msg_id, WebAVPacket *av_packet), {
-    try
-    {
-        await sendAVPacket(msg_id, av_packet);
-    }
-    catch (e)
-    {
-        return 0;
+double get_rotation(AVStream *stream) {
+   for (int i = 0; i < stream->codecpar->nb_coded_side_data; i++) {
+        AVPacketSideData *sd = &stream->codecpar->coded_side_data[i];
+
+        if (sd->type == AV_PKT_DATA_DISPLAYMATRIX && sd->size >= 9*4) {
+            double rotation = av_display_rotation_get((int32_t *)sd->data);
+            if (std::isnan(rotation))
+                rotation = 0;
+            
+            return rotation;
+        }
     }
 
-    return 1;
-});
+    return 0;
+}
 
 std::string gen_rational_str(AVRational rational, char sep)
 {
@@ -156,7 +160,7 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
     web_stream.channels = par->ch_layout.nb_channels;
     web_stream.sample_rate = par->sample_rate;
     web_stream.sample_fmt = av_get_sample_fmt_name((AVSampleFormat)par->format);
-    web_stream.bit_rate = par->bit_rate;
+    web_stream.bit_rate = std::to_string(par->bit_rate);
     web_stream.extradata_size = par->extradata_size;
     if (par->extradata_size > 0)
     {
@@ -170,6 +174,7 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
     // other stream info
     web_stream.start_time = stream->start_time * av_q2d(stream->time_base);
     web_stream.duration = stream->duration > 0 ? stream->duration * av_q2d(stream->time_base) : fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q); // TODO: some file type can not get stream duration
+    web_stream.rotation = get_rotation(stream);
 
     int64_t nb_frames = stream->nb_frames;
 
@@ -178,7 +183,7 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
     {
         nb_frames = (fmt_ctx->duration * (double)stream->avg_frame_rate.num) / ((double)stream->avg_frame_rate.den * AV_TIME_BASE);
     }
-    web_stream.nb_frames = nb_frames;
+    web_stream.nb_frames = std::to_string(nb_frames);
     web_stream.r_frame_rate = gen_rational_str(stream->r_frame_rate, '/');
     web_stream.avg_frame_rate = gen_rational_str(stream->avg_frame_rate, '/');
     AVRational sar, dar;
@@ -205,20 +210,6 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
             .value = tag->value,
         };
         web_stream.tags.push_back(t);
-    }
-}
-
-void cleanup(AVFormatContext *fmt_ctx, AVPacket *packet = NULL)
-{
-    if (fmt_ctx)
-    {
-        avformat_close_input(&fmt_ctx);
-    }
-
-    if (packet)
-    {
-        av_packet_unref(packet);
-        av_packet_free(&packet);
     }
 }
 
@@ -300,7 +291,7 @@ WebAVStreamList get_av_streams(std::string filename)
     return stream_list;
 }
 
-// TODO: seek type & default value
+// TODO: support seek type
 WebAVPacket get_av_packet(std::string filename, double timestamp, int type, int wanted_stream_nb)
 {
     AVFormatContext *fmt_ctx = NULL;
@@ -450,7 +441,7 @@ WebAVPacketList get_av_packets(std::string filename, double timestamp)
     return web_packet_list;
 }
 
-int read_av_packet(int msg_id, std::string filename, double start, double end, int type, int wanted_stream_nb)
+int read_av_packet(std::string filename, double start, double end, int type, int wanted_stream_nb, val js_caller)
 {
     AVFormatContext *fmt_ctx = NULL;
     int ret;
@@ -525,9 +516,10 @@ int read_av_packet(int msg_id, std::string filename, double start, double end, i
                 gen_web_packet(web_packet, packet, fmt_ctx->streams[stream_index]);
 
                 // call js method to send packet
-                int send_ret = send_av_packet(msg_id, &web_packet);
+                val result = js_caller.call<val>("sendAVPacket", web_packet).await();
+                int send_result = result.as<int>();
 
-                if (send_ret == 0)
+                if (send_result == 0)
                 {
                     break;
                 }
@@ -542,7 +534,7 @@ int read_av_packet(int msg_id, std::string filename, double start, double end, i
     }
 
     // call js method to end send packet
-    send_av_packet(msg_id, NULL);
+    js_caller.call<val>("sendAVPacket", 0).await();
 
     avformat_close_input(&fmt_ctx);
     av_packet_unref(packet);
@@ -572,7 +564,7 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
         .property("channels", &WebAVStream::channels)
         .property("sample_rate", &WebAVStream::sample_rate)
         .property("sample_fmt", &WebAVStream::sample_fmt)
-        // .property("bit_rate", &WebAVStream::bit_rate)
+        .property("bit_rate", &WebAVStream::bit_rate)
         .property("extradata_size", &WebAVStream::extradata_size)
         .property("extradata", &WebAVStream::get_extradata) // export extradata as typed_memory_view
         .property("r_frame_rate", &WebAVStream::r_frame_rate)
@@ -581,7 +573,8 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
         .property("display_aspect_ratio", &WebAVStream::display_aspect_ratio)
         .property("start_time", &WebAVStream::start_time)
         .property("duration", &WebAVStream::duration)
-        // .property("nb_frames", &WebAVStream::nb_frames)
+        .property("rotation", &WebAVStream::rotation)
+        .property("nb_frames", &WebAVStream::nb_frames)
         .property("tags", &WebAVStream::tags);
 
     value_object<WebAVStreamList>("WebAVStreamList")
