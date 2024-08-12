@@ -19,7 +19,7 @@ npm install web-demuxer
 ### CDN
 ```html
 <script type="module">
-  import { WebDemuxer } from 'https://cdn.jsdelivr.net/npm/web-demuxer@latest/dist/web-demuxer.min.js';
+  import { WebDemuxer } from 'https://cdn.jsdelivr.net/npm/web-demuxer/+esm';
 </script>
 ```
 
