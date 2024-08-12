@@ -107,7 +107,7 @@
   <script type="module">
     (async () => {
       const isDEV = import.meta.env && import.meta.env.DEV
-      const { WebDemuxer } = isDEV ? await import('./src') : await import('https://cdn.jsdelivr.net/npm/web-demuxer@latest/dist/web-demuxer.min.js')
+      const { WebDemuxer } = isDEV ? await import('./src') : await import('https://cdn.jsdelivr.net/npm/web-demuxer/+esm')
 
       const demuxer = new WebDemuxer({
         wasmLoaderPath: isDEV ? "http://localhost:5173/src/lib/ffmpeg.js" : "https://cdn.jsdelivr.net/npm/web-demuxer@latest/dist/wasm-files/ffmpeg.min.js",
@@ -121,8 +121,12 @@
 
         await demuxer.load(file);
 
-        const videoDecoderConfig = await demuxer.getVideoDecoderConfig();
+        const videoDecoderConfig = await demuxer.getVideoDecoderConfig().catch(e => {
+          console.error('get video decoder config error:', e);
+        });
         const videoChunk = await demuxer.seekEncodedVideoChunk(seekTime);
+
+        console.log("getVideoStream", await demuxer.getVideoStream())
 
         const decoder = new VideoDecoder({
           output: (frame) => {
