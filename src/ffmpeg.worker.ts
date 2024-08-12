@@ -45,7 +45,17 @@ self.addEventListener("message", async function (e) {
         },
         result.map((stream: WebAVStream) => stream.extradata.buffer)
       );
+    } else if (type === "GetMediaInfo") {
+      const {
+        file,
+      } = data;
+      const result = Module.getMediaInfo(file);
 
+      self.postMessage({
+        type,
+        msgId,
+        result,
+      }, result.streams.map((stream: WebAVStream) => stream.extradata.buffer));
     } else if (type === "GetAVPacket") {
       const {
         file,

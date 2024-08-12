@@ -8,6 +8,7 @@ export enum FFMpegWorkerMessageType {
   GetAVPackets = "GetAVPackets",
   GetAVStream = "GetAVStream",
   GetAVStreams = "GetAVStreams",
+  GetMediaInfo = "GetMediaInfo",
   ReadAVPacket = "ReadAVPacket",
   AVPacketStream = "AVPacketStream",
   ReadNextAVPacket = "ReadNextAVPacket",

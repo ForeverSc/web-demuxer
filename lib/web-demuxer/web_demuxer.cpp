@@ -85,6 +85,18 @@ typedef struct WebAVPacketList
     std::vector<WebAVPacket> packets;
 } WebAVPacketList;
 
+typedef struct WebMediaInfo
+{
+    std::string format_name;
+    double start_time;
+    double duration;
+    std::string bit_rate;
+    int nb_streams;
+    int nb_chapters;
+    int flags;
+    std::vector<WebAVStream> streams;
+} WebMediaInfo;
+
 double get_rotation(AVStream *stream) {
    for (int i = 0; i < stream->codecpar->nb_coded_side_data; i++) {
         AVPacketSideData *sd = &stream->codecpar->coded_side_data[i];
@@ -291,6 +303,50 @@ WebAVStreamList get_av_streams(std::string filename)
 
     return stream_list;
 }
+
+WebMediaInfo get_media_info(std::string filename) {
+    AVFormatContext *fmt_ctx = NULL;
+    int ret;
+
+    if ((ret = avformat_open_input(&fmt_ctx, filename.c_str(), NULL, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
+        avformat_close_input(&fmt_ctx);
+        throw std::runtime_error("Cannot open input file");
+    }
+
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0)
+    {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        avformat_close_input(&fmt_ctx);
+        throw std::runtime_error("Cannot find stream information");
+    }
+
+    int num_streams = fmt_ctx->nb_streams;
+
+    WebMediaInfo media_info = {
+        .format_name = fmt_ctx->iformat->name,
+        .start_time = fmt_ctx->start_time * av_q2d(AV_TIME_BASE_Q),
+        .duration = fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q),
+        .bit_rate = std::to_string(fmt_ctx->bit_rate),
+        .nb_streams = num_streams,
+        .nb_chapters = (int)fmt_ctx->nb_chapters,
+        .flags = fmt_ctx->flags,
+        .streams = std::vector<WebAVStream>(num_streams),
+    };
+
+    for (int stream_index = 0; stream_index < num_streams; stream_index++)
+    {
+        AVStream *stream = fmt_ctx->streams[stream_index];
+
+        gen_web_stream(media_info.streams[stream_index], stream, fmt_ctx);
+    }
+
+    avformat_close_input(&fmt_ctx);
+
+    return media_info;
+}
+
 
 // TODO: support seek type
 WebAVPacket get_av_packet(std::string filename, double timestamp, int type, int wanted_stream_nb)
@@ -583,6 +639,15 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
         .field("size", &WebAVStreamList::size)
         .field("streams", &WebAVStreamList::streams);
 
+    value_object<WebMediaInfo>("WebMediaInfo")
+        .field("format_name", &WebMediaInfo::format_name)
+        .field("start_time", &WebMediaInfo::start_time)
+        .field("duration", &WebMediaInfo::duration)
+        .field("bit_rate", &WebMediaInfo::bit_rate)
+        .field("nb_streams", &WebMediaInfo::nb_streams)
+        .field("nb_chapters", &WebMediaInfo::nb_chapters)
+        .field("flags", &WebMediaInfo::flags)
+        .field("streams", &WebMediaInfo::streams);
 
     class_<WebAVPacket>("WebAVPacket")
         .constructor<>()
@@ -598,6 +663,7 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
 
     function("get_av_stream", &get_av_stream, return_value_policy::take_ownership());
     function("get_av_streams", &get_av_streams, return_value_policy::take_ownership());
+    function("get_media_info", &get_media_info, return_value_policy::take_ownership());
     function("get_av_packet", &get_av_packet, return_value_policy::take_ownership());
     function("get_av_packets", &get_av_packets, return_value_policy::take_ownership());
     function("read_av_packet", &read_av_packet);
