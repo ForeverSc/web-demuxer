@@ -26,3 +26,4 @@ dist-ssr
 # wasm build file
 src/lib/*.js
 src/lib/*.wasm
+public/wasm-files/*
