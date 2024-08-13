@@ -23,6 +23,7 @@
             <ul>
               <li><a href="#example-seek">Seek Video Frame</a></li>
               <li><a href="#example-play">Play Video</a></li>
+              <li><a href="#example-get-media-info">Get Media Info</a></li>
               <li><a href="#example-get-all-video-packets">Get All Video Packets</a></li>
             </ul>
           </details>
@@ -86,6 +87,18 @@
               <button id="example-play-btn">Play</button>
             </fieldset>
             <canvas id="example-play-canvas" width="800px" height="450px"></canvas>
+          </card>
+        </section>
+        <section id="example-get-media-info">
+          <hgroup>
+            <h3>Get Media Info</h3>
+            <p>Select a video file and get media info, open devtools to see console output</p>
+          </hgroup>
+          <card>
+            <fieldset role="group">
+              <input type="file" id="example-get-media-info-file">
+              <button id="example-get-media-info-btn">Get</button>
+            </fieldset>
           </card>
         </section>
         <section id="example-get-all-video-packets">
@@ -207,6 +220,13 @@
         }
 
         console.log('all video packets:', await getAllPackets(file));
+      });
+
+      document.getElementById('example-get-media-info-btn').addEventListener('click', async () => {
+        const file = document.getElementById('example-get-media-info-file').files[0];
+        await demuxer.load(file);
+        const mediaInfo = await demuxer.getMediaInfo();
+        console.log('media info: ', mediaInfo);
       });
 
       function wait(time) {

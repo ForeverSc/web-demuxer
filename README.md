@@ -162,14 +162,103 @@ Parameters:
 - `time`: Required, in seconds.
 
 ```typescript
+getMediaInfo(): Promise<WebMediaInfo> // 2.0 New
+```
+Get the media information of a file, the output is referenced from `ffprobe`
+```json
+{
+    "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+    "duration": 10.026667,
+    "bit_rate": "629116",
+    "start_time": 0,
+    "nb_streams": 4,
+    "streams": [
+        {
+            "id": 1,
+            "index": 0,
+            "codec_type": 0,
+            "codec_type_string": "video",
+            "codec_name": "h264",
+            "codec_string": "avc1.4d400c",
+            "profile": "",
+            "pix_fmt": "",
+            "level": -99,
+            "width": 320,
+            "height": 176,
+            "channels": 0,
+            "sample_rate": 0,
+            "sample_fmt": "",
+            "bit_rate": "300570",
+            "extradata_size": 41,
+            "extradata": Uint8Array,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "sample_aspect_ratio": "N/A",
+            "display_aspect_ratio": "N/A",
+            "start_time": 0,
+            "duration": 10,
+            "rotation": 0,
+            "nb_frames": "250",
+            "tags": {
+                "creation_time": "2012-03-13T08:58:06.000000Z",
+                "language": "und",
+                "vendor_id": "[0][0][0][0]",
+                "encoder": "JVT/AVC Coding"
+            }
+        },
+        {
+            "id": 2,
+            "index": 1,
+            "codec_type": 1,
+            "codec_type_string": "audio",
+            "codec_name": "aac",
+            "codec_string": "mp4a.40.2",
+            "profile": "",
+            "pix_fmt": "",
+            "level": -99,
+            "width": 0,
+            "height": 0,
+            "channels": 2,
+            "sample_rate": 48000,
+            "sample_fmt": "",
+            "bit_rate": "160545",
+            "extradata_size": 2,
+            "extradata": Uint8Array,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "sample_aspect_ratio": "N/A",
+            "display_aspect_ratio": "N/A",
+            "start_time": 0,
+            "duration": 10.026666666666666,
+            "rotation": 0,
+            "nb_frames": "470",
+            "tags": {
+                "creation_time": "2012-03-13T08:58:06.000000Z",
+                "language": "und",
+                "vendor_id": "[0][0][0][0]"
+            }
+        }
+    ]
+}
+```
+
+```typescript
+setLogLevel(level: AVLogLevel) // 2.0 New
+```
+Parameters:
+- `level`: Required, output log level, see `AVLogLevel` for details.
+
+```typescript
 destroy(): void
 ```
 Destroys the instance and releases the worker.
 
 ## Custom Demuxer
 Currently, two versions of the demuxer are provided by default to support different formats:
-- `dist/wasm-files/ffmpeg.js`: Full version (gzip: 941 kB), larger in size, supports mov, mp4, m4a, 3gp, 3g2, mj2, avi, flv, matroska, webm, m4v, mpeg, asf
-- `dist/wasm-files/ffmpeg-mini.js`: Minimalist version (gzip: 115 kB), smaller in size, only supports mov, mp4, m4a, 3gp, 3g2, matroska, webm, m4v
+- `dist/wasm-files/ffmpeg.js`: Full version (gzip: 996 kB), larger in size, supports mov, mp4, m4a, 3gp, 3g2, mj2, avi, flv, matroska, webm, m4v, mpeg, asf
+- `dist/wasm-files/ffmpeg-mini.js`: Minimalist version (gzip: 456 kB), smaller in size, only supports mov, mp4, m4a, 3gp, 3g2, matroska, webm, m4v
+> If you want to use a smaller size version, you can use version 1.0 of web-demuxer, the lite version is only 115KB  
+> Version 1.0 is written in C, focuses on WebCodecs, and is small in size, while version 2.0 uses C++ Embind, which provides richer media information output, is easier to maintain, and is large in size
 
 You can also implement a demuxer for specific formats through custom configuration:
 

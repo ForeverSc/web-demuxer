@@ -163,14 +163,102 @@ getAVPackets(time: number): Promise<WebAVPacket[]>
 - `time`: 必填，单位为s
 
 ```typescript
+getMediaInfo(): Promise<WebMediaInfo> // 2.0新增
+```
+获取文件的媒体信息, 输出结果参考自`ffprobe`
+```json
+{
+    "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+    "duration": 10.026667,
+    "bit_rate": "629116",
+    "start_time": 0,
+    "nb_streams": 4,
+    "streams": [
+        {
+            "id": 1,
+            "index": 0,
+            "codec_type": 0,
+            "codec_type_string": "video",
+            "codec_name": "h264",
+            "codec_string": "avc1.4d400c",
+            "profile": "",
+            "pix_fmt": "",
+            "level": -99,
+            "width": 320,
+            "height": 176,
+            "channels": 0,
+            "sample_rate": 0,
+            "sample_fmt": "",
+            "bit_rate": "300570",
+            "extradata_size": 41,
+            "extradata": Uint8Array,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "25/1",
+            "sample_aspect_ratio": "N/A",
+            "display_aspect_ratio": "N/A",
+            "start_time": 0,
+            "duration": 10,
+            "rotation": 0,
+            "nb_frames": "250",
+            "tags": {
+                "creation_time": "2012-03-13T08:58:06.000000Z",
+                "language": "und",
+                "vendor_id": "[0][0][0][0]",
+                "encoder": "JVT/AVC Coding"
+            }
+        },
+        {
+            "id": 2,
+            "index": 1,
+            "codec_type": 1,
+            "codec_type_string": "audio",
+            "codec_name": "aac",
+            "codec_string": "mp4a.40.2",
+            "profile": "",
+            "pix_fmt": "",
+            "level": -99,
+            "width": 0,
+            "height": 0,
+            "channels": 2,
+            "sample_rate": 48000,
+            "sample_fmt": "",
+            "bit_rate": "160545",
+            "extradata_size": 2,
+            "extradata": Uint8Array,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "sample_aspect_ratio": "N/A",
+            "display_aspect_ratio": "N/A",
+            "start_time": 0,
+            "duration": 10.026666666666666,
+            "rotation": 0,
+            "nb_frames": "470",
+            "tags": {
+                "creation_time": "2012-03-13T08:58:06.000000Z",
+                "language": "und",
+                "vendor_id": "[0][0][0][0]"
+            }
+        }
+    ]
+}
+```
+```typescript
+setLogLevel(level: AVLogLevel) // 2.0新增
+```
+参数:
+- `level`: 必填，输出日志等级, 详见`AVLogLevel`
+
+```typescript
 destroy(): void
 ```
 销毁实例，释放worker
 
 ## 自定义Demuxer
 目前默认提供两个版本的demuxer, 用于支持不同的格式:
-- `dist/wasm-files/ffmpeg.js`: 完整版(gzip: 941 kB), 体积较大，支持mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpegi,asf
-- `dist/wasm-files/ffmpeg-mini.js`: 精简版本(gzip: 115 kB)，体积小，仅支持mov,mp4,m4a,3gp,3g2,matroska,webm,m4v
+- `dist/wasm-files/ffmpeg.js`: 完整版(gzip: 996 kB), 体积较大，支持mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpegi,asf
+- `dist/wasm-files/ffmpeg-mini.js`: 精简版本(gzip: 456 kB)，体积小，仅支持mov,mp4,m4a,3gp,3g2,matroska,webm,m4v
+> 如果你想使用体积更小的版本，可以使用1.0版本的web-demuxer，精简版本仅115KB  
+> 1.0版本使用C编写，聚焦WebCodecs，体积小，2.0版本使用C++ Embind，提供了更丰富的媒体信息输出，更易维护，体积大
 
 你也可以通过自定义配置，实现指定格式的demxuer：
 
