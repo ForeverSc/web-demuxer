@@ -12,7 +12,7 @@ self.addEventListener("message", async function (e) {
   try {
     switch (type) {
       case "LoadWASM":
-        return handleLoadWASM(data);
+        return await handleLoadWASM(data);
       case "GetAVStream":
         return handleGetAVStream(data, msgId);
       case "GetAVStreams":
@@ -24,7 +24,7 @@ self.addEventListener("message", async function (e) {
       case "GetAVPackets":
         return handleGetAVPackets(data, msgId);
       case "ReadAVPacket":
-        return handleReadAVPacket(data, msgId);
+        return await handleReadAVPacket(data, msgId);
       case "SetAVLogLevel":
         return handleSetAVLogLevel(data, msgId);
       default:
