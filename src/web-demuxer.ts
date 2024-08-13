@@ -1,9 +1,11 @@
 import {
+  AVLogLevel,
   AVMediaType,
   FFMpegWorkerMessageData,
   FFMpegWorkerMessageType,
   WebAVPacket,
   WebAVStream,
+  WebMediaInfo,
 } from "./types";
 import FFmpegWorker from "./ffmpeg.worker.ts?worker&inline";
 
@@ -91,7 +93,7 @@ export class WebDemuxer {
   }
 
   /**
-   * load a file
+   * Load a file for demuxing
    * @param file file to load
    * @returns load status
    */
@@ -104,7 +106,8 @@ export class WebDemuxer {
   }
 
   /**
-   * destroy the instance
+   * Destroy the demuxer instance
+   * terminate the worker
    */
   public destroy() {
     this.file = undefined;
@@ -113,9 +116,9 @@ export class WebDemuxer {
 
   // ================ base api ================
   /**
-   * get av stream
-   * @param streamType
-   * @param streamIndex 
+   * Gets information about a specified stream in the media file.
+   * @param streamType The type of media stream
+   * @param streamIndex The index of the media stream
    * @returns WebAVStream
    */
   public getAVStream(
@@ -130,7 +133,8 @@ export class WebDemuxer {
   }
 
   /**
-   * get all av streams
+   * Get all streams
+   * @returns WebAVStream[]
    */
   public getAVStreams(): Promise<WebAVStream[]> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVStreams, {
@@ -139,19 +143,20 @@ export class WebDemuxer {
   }
 
   /**
-   * get file media info
+   * Get file media info
+   * @returns WebMediaInfo
    */
-  public getMediaInfo() {
+  public getMediaInfo(): Promise<WebMediaInfo> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetMediaInfo, {
       file: this.file!,
     });
   }
 
   /**
-   * get av packet
-   * @param time 
-   * @param streamType 
-   * @param streamIndex 
+   * Gets the data at a specified time point in the media file.
+   * @param time time in seconds
+   * @param streamType The type of media stream
+   * @param streamIndex The index of the media stream
    * @returns WebAVPacket
    */
   public getAVPacket(
@@ -168,8 +173,8 @@ export class WebDemuxer {
   }
 
   /**
-   * get av packets in all streams
-   * @param time 
+   * Get all packets at a time point from all streams
+   * @param time time in seconds
    * @returns WebAVPacket[]
    */
   public getAVPackets(
@@ -182,11 +187,11 @@ export class WebDemuxer {
   }
 
   /**
-   * read av packet
-   * @param start start time
-   * @param end end time
-   * @param streamType 
-   * @param streamIndex 
+   * Returns a `ReadableStream` for streaming packet data.
+   * @param start start time in seconds
+   * @param end end time in seconds
+   * @param streamType The type of media stream
+   * @param streamIndex The index of the media stream
    * @returns ReadableStream<WebAVPacket>
    */
   public readAVPacket(
@@ -261,24 +266,58 @@ export class WebDemuxer {
     );
   }
 
+  /**
+   * Set log level
+   * @param level log level
+   */
+  public setLogLevel(level: AVLogLevel) {
+    return this.getFromWorker(FFMpegWorkerMessageType.SetAVLogLevel, { level })
+  }
+
   // ================ convenience api ================
 
+  /**
+   * Get video stream
+   * @param streamType The type of media stream
+   * @returns WebAVStream
+   */
   public getVideoStream(streamIndex?: number) {
     return this.getAVStream(AVMediaType.AVMEDIA_TYPE_VIDEO, streamIndex);
   }
 
+  /**
+   * Get audio stream
+   * @param streamIndex The index of the media stream
+   * @returns 
+   */
   public getAudioStream(streamIndex?: number) {
     return this.getAVStream(AVMediaType.AVMEDIA_TYPE_AUDIO, streamIndex);
   }
 
+  /**
+   * Seek video packet at a time point
+   * @param time seek time in seconds
+   * @returns WebAVPacket
+   */
   public seekVideoPacket(time: number) {
     return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_VIDEO);
   }
 
+  /**
+   * Seek audio packet at a time point
+   * @param time seek time in seconds
+   * @returns WebAVPacket
+   */
   public seekAudioPacket(time: number) {
     return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_AUDIO);
   }
 
+  /**
+   * Read video packet as a stream
+   * @param start start time in seconds
+   * @param end  end time in seconds
+   * @returns ReadableStream<WebAVPacket>
+   */
   public readVideoPacket(start?: number, end?: number) {
     return this.readAVPacket(
       start,
@@ -287,6 +326,12 @@ export class WebDemuxer {
     );
   }
 
+  /**
+   * Read audio packet as a stream
+   * @param start start time in seconds
+   * @param end end time in seconds
+   * @returns ReadableStream<WebAVPacket>
+   */
   public readAudioPacket(start?: number, end?: number) {
     return this.readAVPacket(
       start,
@@ -297,6 +342,11 @@ export class WebDemuxer {
 
   // =========== custom api for webcodecs ===========
 
+  /**
+   * Generate VideoDecoderConfig from WebAVStream
+   * @param avStream WebAVStream
+   * @returns VideoDecoderConfig
+   */
   public genVideoDecoderConfig(avStream: WebAVStream): VideoDecoderConfig {
     return {
       codec: avStream.codec_string,
@@ -309,6 +359,11 @@ export class WebDemuxer {
     };
   }
 
+  /**
+   * Generate EncodedVideoChunk from WebAVPacket
+   * @param avPacket WebAVPacket
+   * @returns EncodedVideoChunk
+   */
   public genEncodedVideoChunk(avPacket: WebAVPacket): EncodedVideoChunk {
     return new EncodedVideoChunk({
       type: avPacket.keyframe === 1 ? "key" : "delta",
@@ -318,6 +373,11 @@ export class WebDemuxer {
     });
   }
 
+  /**
+   * Generate AudioDecoderConfig from WebAVStream
+   * @param avStream WebAVStream
+   * @returns AudioDecoderConfig
+   */
   public genAudioDecoderConfig(avStream: WebAVStream): AudioDecoderConfig {
     return {
       codec: avStream.codec_string || "",
@@ -330,6 +390,11 @@ export class WebDemuxer {
     };
   }
 
+  /**
+   * Generate EncodedAudioChunk from WebAVPacket
+   * @param avPacket WebAVPacket
+   * @returns EncodedAudioChunk
+   */
   public genEncodedAudioChunk(avPacket: WebAVPacket): EncodedAudioChunk {
     return new EncodedAudioChunk({
       type: avPacket.keyframe === 1 ? "key" : "delta",
@@ -339,26 +404,44 @@ export class WebDemuxer {
     });
   }
 
+  /**
+   * Get WebCodecs VideoDecoderConfig
+   * @returns VideoDecoderConfig
+   */
   public async getVideoDecoderConfig() {
     const videoStream = await this.getVideoStream();
 
     return this.genVideoDecoderConfig(videoStream);
   }
 
-  public async seekEncodedVideoChunk(timestamp: number) {
-    const videoPacket = await this.seekVideoPacket(timestamp);
+  /**
+   * Seek and return EncodedVideoChunk
+   * @param time time in seconds
+   * @returns EncodedVideoChunk
+   */
+  public async seekEncodedVideoChunk(time: number) {
+    const videoPacket = await this.seekVideoPacket(time);
 
     return this.genEncodedVideoChunk(videoPacket);
   }
 
+  /**
+   * Get WebCodecs AudioDecoderConfig
+   * @returns AudioDecoderConfig
+   */
   public async getAudioDecoderConfig() {
     const audioStream = await this.getAudioStream();
 
     return this.genAudioDecoderConfig(audioStream);
   }
 
-  public async seekEncodedAudioChunk(timestamp: number) {
-    const audioPacket = await this.seekAudioPacket(timestamp);
+  /**
+   * Seek and return EncodedAudioChunk
+   * @param time time in seconds
+   * @returns EncodedAudioChunk
+   */
+  public async seekEncodedAudioChunk(time: number) {
+    const audioPacket = await this.seekAudioPacket(time);
 
     return this.genEncodedAudioChunk(audioPacket);
   }

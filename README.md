@@ -63,8 +63,6 @@ async function seek(file, time) {
 - [Seek Video Frame](https://foreversc.github.io/web-demuxer/#example-seek) ｜ [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L96)
 - [Play Video](https://foreversc.github.io/web-demuxer/#example-play) ｜ [code](https://github.com/ForeverSc/web-demuxer/blob/main/index.html#L123)
 
-Here is the translation of the provided TypeScript API documentation into English:
-
 ## API
 ```typescript
 new WebDemuxer(options: WebDemuxerOptions)

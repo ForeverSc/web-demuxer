@@ -39,3 +39,14 @@ export interface WebAVPacket {
   size: number;
   data: Uint8Array;
 }
+
+export interface WebMediaInfo {
+  format_name: string;
+  start_time: number;
+  duration: number;
+  bit_rate: string;
+  nb_streams: number;
+  nb_chapters: number;
+  flags: number;
+  streams: WebAVStream[];
+}

@@ -28,11 +28,8 @@ WEB_DEMUXER_ARGS = \
 		-O3 \
 		-s EXPORT_ES6=1 \
 		-s INVOKE_RUN=0 \
-		-s ENVIRONMENT=worker \
-		-s EXPORTED_RUNTIME_METHODS=cwrap,getValue,UTF8ToString \
-		-s EXPORTED_FUNCTIONS=_free \
+	-s ENVIRONMENT=worker \
 		-s ASYNCIFY \
-		-s WASM_BIGINT \
 		-s ALLOW_MEMORY_GROWTH=1
 
 clean:

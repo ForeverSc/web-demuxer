@@ -228,8 +228,6 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
 
 WebAVStream get_av_stream(std::string filename, int type, int wanted_stream_nb)
 {
-    // av_log_set_level(AV_LOG_QUIET);
-
     AVFormatContext *fmt_ctx = NULL;
     int ret;
 
@@ -600,6 +598,10 @@ int read_av_packet(std::string filename, double start, double end, int type, int
     return 1;
 }
 
+void set_av_log_level(int level) {
+    av_log_set_level(level);
+}
+
 EMSCRIPTEN_BINDINGS(web_demuxer)
 {
     value_object<Tag>("Tag")
@@ -667,6 +669,7 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
     function("get_av_packet", &get_av_packet, return_value_policy::take_ownership());
     function("get_av_packets", &get_av_packets, return_value_policy::take_ownership());
     function("read_av_packet", &read_av_packet);
+    function("set_av_log_level", &set_av_log_level);
 
     register_vector<uint8_t>("vector<uint8_t>");
     register_vector<Tag>("vector<Tag>");

@@ -121,12 +121,8 @@
 
         await demuxer.load(file);
 
-        const videoDecoderConfig = await demuxer.getVideoDecoderConfig().catch(e => {
-          console.error('get video decoder config error:', e);
-        });
+        const videoDecoderConfig = await demuxer.getVideoDecoderConfig();
         const videoChunk = await demuxer.seekEncodedVideoChunk(seekTime);
-
-        console.log("getVideoStream", await demuxer.getVideoStream())
 
         const decoder = new VideoDecoder({
           output: (frame) => {
