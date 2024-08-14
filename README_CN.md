@@ -120,6 +120,10 @@ readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex
 - `streamType`: 媒体流类型，默认值为0, 即视频流，1为音频流。其他具体见`AVMediaType`
 - `streamIndex`: 媒体流索引，默认值为-1，即自动选择
 
+基于`readAVPacket`的语义简化方法:
+- `readVideoPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
+- `readAudioPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
+
 ```typescript
 getAVStream(streamType?: AVMediaType, streamIndex?: number): Promise<WebAVStream>
 ```
@@ -151,8 +155,6 @@ getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number): Promi
 基于`getAVPacket`的语义简化方法:
 - `seekVideoPacket(time: number): Promise<WebAVPacket>`
 - `seekAudioPacket(time: number): Promise<WebAVPacket>`
-- `readVideoPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
-- `readAudioPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
 
 ```typescript
 getAVPackets(time: number): Promise<WebAVPacket[]>

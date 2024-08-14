@@ -119,6 +119,10 @@ Parameters:
 - `streamType`: The type of media stream, defaults to 0, which is the video stream. 1 is audio stream. See `AVMediaType` for more details.
 - `streamIndex`: The index of the media stream, defaults to -1, which is to automatically select.
 
+Simplified methods based on the semantics of `readAVPacket`:
+- `readVideoPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
+- `readAudioPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
+
 ```typescript
 getAVStream(streamType?: AVMediaType, streamIndex?: number): Promise<WebAVStream>
 ```
@@ -150,8 +154,6 @@ Parameters:
 Simplified methods based on the semantics of `getAVPacket`:
 - `seekVideoPacket(time: number): Promise<WebAVPacket>`
 - `seekAudioPacket(time: number): Promise<WebAVPacket>`
-- `readVideoPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
-- `readAudioPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
 
 ```typescript
 getAVPackets(time: number): Promise<WebAVPacket[]>
