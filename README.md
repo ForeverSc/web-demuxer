@@ -75,7 +75,7 @@ Parameters:
   > ⚠️ You must ensure that the wasm and JavaScript loader files are placed in the same accessible directory, the JavaScript loader will default to requesting the wasm file in the same directory.
 
 ```typescript
-load(file: File): Promise<boolean>
+load(file: File): Promise<void>
 ```
 Loads a file and waits for the wasm worker to finish loading. The subsequent methods can only be called after the `load` method has been successfully executed.
 
