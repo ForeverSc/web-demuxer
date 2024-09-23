@@ -345,9 +345,7 @@ WebMediaInfo get_media_info(std::string filename) {
     return media_info;
 }
 
-
-// TODO: support seek type
-WebAVPacket get_av_packet(std::string filename, double timestamp, int type, int wanted_stream_nb)
+WebAVPacket get_av_packet(std::string filename, double timestamp, int type, int wanted_stream_nb, int seek_flag)
 {
     AVFormatContext *fmt_ctx = NULL;
     int ret;
@@ -388,7 +386,7 @@ WebAVPacket get_av_packet(std::string filename, double timestamp, int type, int 
     int64_t int64_timestamp = (int64_t)(timestamp * AV_TIME_BASE);
     int64_t seek_time_stamp = av_rescale_q(int64_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
 
-    if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
+    if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, seek_flag)) < 0)
     {
         av_log(NULL, AV_LOG_ERROR, "Cannot seek to the specified timestamp\n");
         avformat_close_input(&fmt_ctx);
@@ -424,7 +422,7 @@ WebAVPacket get_av_packet(std::string filename, double timestamp, int type, int 
     return web_packet;
 }
 
-WebAVPacketList get_av_packets(std::string filename, double timestamp)
+WebAVPacketList get_av_packets(std::string filename, double timestamp, int seek_flag)
 {
     AVFormatContext *fmt_ctx = NULL;
     int ret;
@@ -465,7 +463,7 @@ WebAVPacketList get_av_packets(std::string filename, double timestamp)
         int64_t int64_timestamp = (int64_t)(timestamp * AV_TIME_BASE);
         int64_t seek_time_stamp = av_rescale_q(int64_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
 
-        if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
+        if ((ret = av_seek_frame(fmt_ctx, stream_index, seek_time_stamp, seek_flag)) < 0)
         {
             av_log(NULL, AV_LOG_ERROR, "Cannot seek to the specified timestamp\n");
             throw std::runtime_error("Cannot seek to the specified timestamp");
@@ -496,7 +494,7 @@ WebAVPacketList get_av_packets(std::string filename, double timestamp)
     return web_packet_list;
 }
 
-int read_av_packet(std::string filename, double start, double end, int type, int wanted_stream_nb, val js_caller)
+int read_av_packet(std::string filename, double start, double end, int type, int wanted_stream_nb, int seek_flag, val js_caller)
 {
     AVFormatContext *fmt_ctx = NULL;
     int ret;
@@ -539,7 +537,7 @@ int read_av_packet(std::string filename, double start, double end, int type, int
         int64_t start_timestamp = (int64_t)(start * AV_TIME_BASE);
         int64_t rescaled_start_time_stamp = av_rescale_q(start_timestamp, AV_TIME_BASE_Q, fmt_ctx->streams[stream_index]->time_base);
 
-        if ((ret = av_seek_frame(fmt_ctx, stream_index, rescaled_start_time_stamp, AVSEEK_FLAG_BACKWARD)) < 0)
+        if ((ret = av_seek_frame(fmt_ctx, stream_index, rescaled_start_time_stamp, seek_flag)) < 0)
         {
             av_log(NULL, AV_LOG_ERROR, "Cannot seek to the specified timestamp\n");
             avformat_close_input(&fmt_ctx);

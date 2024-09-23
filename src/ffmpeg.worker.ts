@@ -88,8 +88,8 @@ function handleGetMediaInfo(data: GetMediaInfoMessageData, msgId: number) {
 }
 
 function handleGetAVPacket(data: GetAVPacketMessageData, msgId: number) {
-  const { file, time, streamType, streamIndex } = data;
-  const result = Module.getAVPacket(file, time, streamType, streamIndex);
+  const { file, time, streamType, streamIndex, seekFlag } = data;
+  const result = Module.getAVPacket(file, time, streamType, streamIndex, seekFlag);
 
   self.postMessage(
     {
@@ -102,8 +102,8 @@ function handleGetAVPacket(data: GetAVPacketMessageData, msgId: number) {
 }
 
 function handleGetAVPackets(data: GetAVPacketsMessageData, msgId: number) {
-  const { file, time } = data;
-  const result = Module.getAVPackets(file, time);
+  const { file, time, seekFlag } = data;
+  const result = Module.getAVPackets(file, time, seekFlag);
 
   self.postMessage(
     {
@@ -116,7 +116,7 @@ function handleGetAVPackets(data: GetAVPacketsMessageData, msgId: number) {
 }
 
 async function handleReadAVPacket(data: ReadAVPacketMessageData, msgId: number) {
-  const { file, start, end, streamType, streamIndex } = data;
+  const { file, start, end, streamType, streamIndex, seekFlag } = data;
   const result = await Module.readAVPacket(
     msgId,
     file,
@@ -124,6 +124,7 @@ async function handleReadAVPacket(data: ReadAVPacketMessageData, msgId: number) 
     end,
     streamType,
     streamIndex,
+    seekFlag
   );
 
   self.postMessage({

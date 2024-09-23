@@ -53,3 +53,22 @@ export enum AVLogLevel {
    */
   AV_LOG_TRACE = 56,
 }
+
+export enum AVSeekFlag {
+  /**
+   * seek backward
+   */
+  AVSEEK_FLAG_BACKWARD = 1,
+  /**
+   * seeking based on position in bytes
+   */
+  AVSEEK_FLAG_BYTE = 2,
+  /**
+   * seek to any frame, even non-keyframes
+   */
+  AVSEEK_FLAG_ANY = 4,
+  /**
+   * seeking based on frame number
+   */
+  AVSEEK_FLAG_FRAME = 8
+}

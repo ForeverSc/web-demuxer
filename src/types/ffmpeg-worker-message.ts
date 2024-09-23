@@ -1,4 +1,4 @@
-import { AVLogLevel, AVMediaType } from "./avutil";
+import { AVLogLevel, AVMediaType, AVSeekFlag } from "./avutil";
 
 export enum FFMpegWorkerMessageType {
   FFmpegWorkerLoaded = "FFmpegWorkerLoaded",
@@ -41,11 +41,13 @@ export interface GetAVPacketMessageData {
   time: number;
   streamType: AVMediaType;
   streamIndex: number;
+  seekFlag: AVSeekFlag;
 }
 
 export interface GetAVPacketsMessageData {
   file: File;
   time: number;
+  seekFlag: AVSeekFlag;
 }
 
 export interface ReadAVPacketMessageData {
@@ -54,6 +56,7 @@ export interface ReadAVPacketMessageData {
   end: number;
   streamType: AVMediaType;
   streamIndex: number;
+  seekFlag: AVSeekFlag;
 }
 
 export interface LoadWASMMessageData {

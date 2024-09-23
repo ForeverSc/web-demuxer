@@ -1,6 +1,7 @@
 import {
   AVLogLevel,
   AVMediaType,
+  AVSeekFlag,
   FFMpegWorkerMessageData,
   FFMpegWorkerMessageType,
   WebAVPacket,
@@ -157,32 +158,38 @@ export class WebDemuxer {
    * @param time time in seconds
    * @param streamType The type of media stream
    * @param streamIndex The index of the media stream
+   * @param seekFlag The seek flag
    * @returns WebAVPacket
    */
   public getAVPacket(
     time: number,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
+    seekFlag = AVSeekFlag.AVSEEK_FLAG_BACKWARD
   ): Promise<WebAVPacket> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVPacket, {
       file: this.file!,
       time,
       streamType,
       streamIndex,
+      seekFlag
     });
   }
 
   /**
    * Get all packets at a time point from all streams
    * @param time time in seconds
+   * @param seekFlag The seek flag
    * @returns WebAVPacket[]
    */
   public getAVPackets(
     time: number,
+    seekFlag = AVSeekFlag.AVSEEK_FLAG_BACKWARD
   ): Promise<WebAVPacket[]> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVPackets, {
       file: this.file!,
       time,
+      seekFlag
     });
   }
 
@@ -192,6 +199,7 @@ export class WebDemuxer {
    * @param end end time in seconds
    * @param streamType The type of media stream
    * @param streamIndex The index of the media stream
+   * @param seekFlag The seek flag
    * @returns ReadableStream<WebAVPacket>
    */
   public readAVPacket(
@@ -199,6 +207,7 @@ export class WebDemuxer {
     end = 0,
     streamType = AVMediaType.AVMEDIA_TYPE_VIDEO,
     streamIndex = -1,
+    seekFlag = AVSeekFlag.AVSEEK_FLAG_BACKWARD
   ): ReadableStream<WebAVPacket> {
     const queueingStrategy = new CountQueuingStrategy({ highWaterMark: 1 });
     const msgId = this.msgId;
@@ -245,6 +254,7 @@ export class WebDemuxer {
             end,
             streamType,
             streamIndex,
+            seekFlag
           });
         },
         pull: () => {
@@ -297,32 +307,37 @@ export class WebDemuxer {
   /**
    * Seek video packet at a time point
    * @param time seek time in seconds
+   * @param seekFlag The seek flag
    * @returns WebAVPacket
    */
-  public seekVideoPacket(time: number) {
-    return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_VIDEO);
+  public seekVideoPacket(time: number, seekFlag?: AVSeekFlag) {
+    return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_VIDEO, undefined, seekFlag);
   }
 
   /**
    * Seek audio packet at a time point
    * @param time seek time in seconds
+   * @param seekFlag The seek flag
    * @returns WebAVPacket
    */
-  public seekAudioPacket(time: number) {
-    return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_AUDIO);
+  public seekAudioPacket(time: number, seekFlag?: AVSeekFlag) {
+    return this.getAVPacket(time, AVMediaType.AVMEDIA_TYPE_AUDIO, undefined, seekFlag);
   }
 
   /**
    * Read video packet as a stream
    * @param start start time in seconds
    * @param end  end time in seconds
+   * @param seekFlag The seek flag
    * @returns ReadableStream<WebAVPacket>
    */
-  public readVideoPacket(start?: number, end?: number) {
+  public readVideoPacket(start?: number, end?: number, seekFlag?: AVSeekFlag) {
     return this.readAVPacket(
       start,
       end,
       AVMediaType.AVMEDIA_TYPE_VIDEO,
+      undefined,
+      seekFlag,
     );
   }
 
@@ -330,13 +345,16 @@ export class WebDemuxer {
    * Read audio packet as a stream
    * @param start start time in seconds
    * @param end end time in seconds
+   * @param seekFlag The seek flag
    * @returns ReadableStream<WebAVPacket>
    */
-  public readAudioPacket(start?: number, end?: number) {
+  public readAudioPacket(start?: number, end?: number, seekFlag?: AVSeekFlag) {
     return this.readAVPacket(
       start,
       end,
       AVMediaType.AVMEDIA_TYPE_AUDIO,
+      undefined,
+      seekFlag
     );
   }
 
@@ -417,10 +435,11 @@ export class WebDemuxer {
   /**
    * Seek and return EncodedVideoChunk
    * @param time time in seconds
+   * @param seekFlag The seek flag
    * @returns EncodedVideoChunk
    */
-  public async seekEncodedVideoChunk(time: number) {
-    const videoPacket = await this.seekVideoPacket(time);
+  public async seekEncodedVideoChunk(time: number, seekFlag?: AVSeekFlag) {
+    const videoPacket = await this.seekVideoPacket(time, seekFlag);
 
     return this.genEncodedVideoChunk(videoPacket);
   }
@@ -438,10 +457,11 @@ export class WebDemuxer {
   /**
    * Seek and return EncodedAudioChunk
    * @param time time in seconds
+   * @param seekFlag The seek flag
    * @returns EncodedAudioChunk
    */
-  public async seekEncodedAudioChunk(time: number) {
-    const audioPacket = await this.seekAudioPacket(time);
+  public async seekEncodedAudioChunk(time: number, seekFlag?: AVSeekFlag) {
+    const audioPacket = await this.seekAudioPacket(time, seekFlag);
 
     return this.genEncodedAudioChunk(audioPacket);
   }
