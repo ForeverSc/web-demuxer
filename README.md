@@ -93,7 +93,7 @@ getAudioDecoderConfig(): Promise<AudioDecoderConfig>
 Parses the audio stream to obtain the `AudioDecoderConfig` of the file, and the return value can be directly used as an argument for the `configure` method of `AudioDecoder`.
 
 ```typescript
-seekEncodedVideoChunk(time: number): Promise<EncodedVideoChunk>
+seekEncodedVideoChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedVideoChunk>
 ```
 Retrieves the video data at the specified time point (default keyframe), and the return value can be directly used as an argument for the `decode` method of `VideoDecoder`.
 
@@ -101,7 +101,7 @@ Parameters:
 - `time`: Required, in seconds.
 
 ```typescript
-seekEncodedAudioChunk(time: number): Promise<EncodedAudioChunk>
+seekEncodedAudioChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedAudioChunk>
 ```
 Retrieves the audio data at the specified time point, and the return value can be directly used as an argument for the `decode` method of `AudioDecoder`.
 
@@ -109,7 +109,7 @@ Parameters:
 - `time`: Required, in seconds.
 
 ```typescript
-readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex?: number): ReadableStream<WebAVPacket>
+readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>
 ```
 Returns a `ReadableStream` for streaming packet data.
 
@@ -118,10 +118,11 @@ Parameters:
 - `end`: The end time for reading, in seconds, defaults to 0, reading until the end of the file.
 - `streamType`: The type of media stream, defaults to 0, which is the video stream. 1 is audio stream. See `AVMediaType` for more details.
 - `streamIndex`: The index of the media stream, defaults to -1, which is to automatically select.
+- `seekFlag`: The seek flag, defaults to 1 (seek backward). See `AVSeekFlag` for more details.
 
 Simplified methods based on the semantics of `readAVPacket`:
-- `readVideoPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
-- `readAudioPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
+- `readVideoPacket(start?: number, end?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>`
+- `readAudioPacket(start?: number, end?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>`
 
 ```typescript
 getAVStream(streamType?: AVMediaType, streamIndex?: number): Promise<WebAVStream>
@@ -142,7 +143,7 @@ getAVStreams(): Promise<WebAVStream[]>
 Get all streams in the media file.
 
 ```typescript
-getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number): Promise<WebAVPacket>
+getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket>
 ```
 Gets the data at a specified time point in the media file.
 
@@ -150,18 +151,20 @@ Parameters:
 - `time`: Required, in seconds.
 - `streamType`: The type of media stream, defaults to 0, which is the video stream. 1 is audio stream. See `AVMediaType` for more details.
 - `streamIndex`: The index of the media stream, defaults to -1, which is to automatically select.
+- `seekFlag`: The seek flag, defaults to 1 (seek backward). See `AVSeekFlag` for more details.
 
 Simplified methods based on the semantics of `getAVPacket`:
-- `seekVideoPacket(time: number): Promise<WebAVPacket>`
-- `seekAudioPacket(time: number): Promise<WebAVPacket>`
+- `seekVideoPacket(time: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket>`
+- `seekAudioPacket(time: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket>`
 
 ```typescript
-getAVPackets(time: number): Promise<WebAVPacket[]>
+getAVPackets(time: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket[]>
 ```
 Simultaneously retrieves packet data on all streams at a certain time point and returns in the order of the stream array.
 
 Parameters:
 - `time`: Required, in seconds.
+- `seekFlag`: The seek flag, defaults to 1 (seek backward). See `AVSeekFlag` for more details.
 
 ```typescript
 getMediaInfo(): Promise<WebMediaInfo> // 2.0 New

@@ -94,7 +94,7 @@ getAudioDecoderConfig(): Promise<AudioDecoderConfig>
 解析音频流，获取文件的`AudioDecoderConfig`, 返回值可直接作为`AudioDecoder`的`configure`方法的入参
 
 ```typescript
-seekEncodedVideoChunk(time: number): Promise<EncodedVideoChunk>
+seekEncodedVideoChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedVideoChunk>
 ```
 根据传入时间点，获取指定时间点的视频数据（默认取关键帧），返回值可直接作为`VideoDecoder`的`decode`方法的入参
 
@@ -102,7 +102,7 @@ seekEncodedVideoChunk(time: number): Promise<EncodedVideoChunk>
 - `time`: 必填，单位为s
 
 ```typescript
-seekEncodedAudioChunk(time: number): Promise<EncodedAudioChunk>
+seekEncodedAudioChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedAudioChunk>
 ```
 根据传入时间点，获取指定时间点的音频数据，返回值可直接作为`AudioDecoder`的`decode`方法的入参
 
@@ -110,7 +110,7 @@ seekEncodedAudioChunk(time: number): Promise<EncodedAudioChunk>
 - `time`: 必填，单位为s
 
 ```typescript
-readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex?: number): ReadableStream<WebAVPacket>
+readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>
 ```
 返回一个`ReadableStream`, 用于流式读取packet数据
 
@@ -119,10 +119,11 @@ readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex
 - `end`: 读取结束时间点，单位为s, 默认值为0，读取到文件末尾
 - `streamType`: 媒体流类型，默认值为0, 即视频流，1为音频流。其他具体见`AVMediaType`
 - `streamIndex`: 媒体流索引，默认值为-1，即自动选择
+- `seekFlag`: 寻址标志, 默认值为1 (向后寻址). 详情请查看 `AVSeekFlag`。
 
 基于`readAVPacket`的语义简化方法:
-- `readVideoPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
-- `readAudioPacket(start?: number, end?: number): ReadableStream<WebAVPacket>`
+- `readVideoPacket(start?: number, end?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>`
+- `readAudioPacket(start?: number, end?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>`
 
 ```typescript
 getAVStream(streamType?: AVMediaType, streamIndex?: number): Promise<WebAVStream>
@@ -143,7 +144,7 @@ getAVStreams(): Promise<WebAVStream[]>
 获取媒体文件中所有的stream
 
 ```typescript
-getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number): Promise<WebAVPacket>
+getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket>
 ```
 获取媒体文件中指定时间点的数据
 
@@ -151,18 +152,20 @@ getAVPacket(time: number, streamType?: AVMediaType, streamIndex?: number): Promi
 - `time`: 必填，单位为s
 - `streamType`: 媒体流类型，默认值为0, 即视频流，1为音频流。其他具体见`AVMediaType`
 - `streamIndex`: 媒体流索引，默认值为-1，即自动选择
+- `seekFlag`: 寻址标志, 默认值为1 (向后寻址). 详情请查看 `AVSeekFlag`。
 
 基于`getAVPacket`的语义简化方法:
-- `seekVideoPacket(time: number): Promise<WebAVPacket>`
-- `seekAudioPacket(time: number): Promise<WebAVPacket>`
+- `seekVideoPacket(time: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket>`
+- `seekAudioPacket(time: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket>`
 
 ```typescript
-getAVPackets(time: number): Promise<WebAVPacket[]>
+getAVPackets(time: number, seekFlag?: AVSeekFlag): Promise<WebAVPacket[]>
 ```
 同时获取某个时间点，所有stream上的packet数据, 并按照stream数组顺序返回
 
 参数:
 - `time`: 必填，单位为s
+- `seekFlag`: 寻址标志, 默认值为1 (向后寻址). 详情请查看 `AVSeekFlag`。
 
 ```typescript
 getMediaInfo(): Promise<WebMediaInfo> // 2.0新增
