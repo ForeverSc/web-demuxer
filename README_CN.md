@@ -100,6 +100,7 @@ seekEncodedVideoChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedVideo
 
 参数:
 - `time`: 必填，单位为s
+- `seekFlag`: 寻址标志, 默认值为1 (向后寻址). 详情请查看 `AVSeekFlag`。
 
 ```typescript
 seekEncodedAudioChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedAudioChunk>
@@ -108,6 +109,7 @@ seekEncodedAudioChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedAudio
 
 参数:
 - `time`: 必填，单位为s
+- `seekFlag`: 寻址标志, 默认值为1 (向后寻址). 详情请查看 `AVSeekFlag`。
 
 ```typescript
 readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>

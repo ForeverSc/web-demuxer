@@ -99,6 +99,7 @@ Retrieves the video data at the specified time point (default keyframe), and the
 
 Parameters:
 - `time`: Required, in seconds.
+- `seekFlag`: The seek flag, defaults to 1 (seek backward). See `AVSeekFlag` for more details.
 
 ```typescript
 seekEncodedAudioChunk(time: number, seekFlag?: AVSeekFlag): Promise<EncodedAudioChunk>
@@ -107,6 +108,7 @@ Retrieves the audio data at the specified time point, and the return value can b
 
 Parameters:
 - `time`: Required, in seconds.
+- `seekFlag`: The seek flag, defaults to 1 (seek backward). See `AVSeekFlag` for more details.
 
 ```typescript
 readAVPacket(start?: number, end?: number, streamType?: AVMediaType, streamIndex?: number, seekFlag?: AVSeekFlag): ReadableStream<WebAVPacket>
