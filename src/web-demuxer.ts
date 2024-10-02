@@ -12,7 +12,7 @@ import FFmpegWorker from "./ffmpeg.worker.ts?worker&inline";
 
 const TIME_BASE = 1000000;
 
-interface WebDemuxerOptions {
+export interface WebDemuxerOptions {
   /**
    * path to the wasm loader
    */
