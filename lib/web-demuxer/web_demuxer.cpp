@@ -37,6 +37,10 @@ typedef struct WebAVStream
     std::string codec_string;
     std::string profile;
     std::string pix_fmt;
+    std::string color_primaries;
+    std::string color_transfer;
+    std::string color_space;
+    std::string color_range;
     int level;
     int width;
     int height;
@@ -153,6 +157,10 @@ void gen_web_stream(WebAVStream &web_stream, AVStream *stream, AVFormatContext *
 
     if (par->codec_type == AVMEDIA_TYPE_VIDEO)
     {
+        web_stream.color_primaries = av_color_primaries_name(par->color_primaries);
+        web_stream.color_transfer = av_color_transfer_name(par->color_trc);
+        web_stream.color_space = av_color_space_name(par->color_space);
+        web_stream.color_range = av_color_range_name(par->color_range);
         set_video_codec_string(codec_string, sizeof(codec_string), par, &stream->avg_frame_rate);
     }
     else if (par->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -633,7 +641,12 @@ EMSCRIPTEN_BINDINGS(web_demuxer)
         .property("duration", &WebAVStream::duration)
         .property("rotation", &WebAVStream::rotation)
         .property("nb_frames", &WebAVStream::nb_frames)
-        .property("tags", &WebAVStream::tags);
+        .property("tags", &WebAVStream::tags)
+        .property("color_primaries", &WebAVStream::color_primaries)
+        .property("color_transfer", &WebAVStream::color_transfer)
+        .property("color_space", &WebAVStream::color_space)
+        .property("color_range", &WebAVStream::color_range);
+
 
     value_object<WebAVStreamList>("WebAVStreamList")
         .field("size", &WebAVStreamList::size)
