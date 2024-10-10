@@ -27,17 +27,17 @@ export type FFMpegWorkerMessageData =
   | GetMediaInfoMessageData;
 
 export interface GetAVStreamMessageData {
-  file: File;
+  source: File | string;
   streamType: AVMediaType;
   streamIndex: number;
 }
 
 export interface GetAVStreamsMessageData {
-  file: File;
+  source: File | string;
 }
 
 export interface GetAVPacketMessageData {
-  file: File;
+  source: File | string;
   time: number;
   streamType: AVMediaType;
   streamIndex: number;
@@ -45,13 +45,13 @@ export interface GetAVPacketMessageData {
 }
 
 export interface GetAVPacketsMessageData {
-  file: File;
+  source: File | string;
   time: number;
   seekFlag: AVSeekFlag;
 }
 
 export interface ReadAVPacketMessageData {
-  file: File;
+  source: File | string;
   start: number;
   end: number;
   streamType: AVMediaType;
@@ -64,7 +64,7 @@ export interface LoadWASMMessageData {
 }
 
 export interface GetMediaInfoMessageData {
-  file: File;
+  source: File | string;
 }
 
 export interface SetAVLogLevelMessageData {

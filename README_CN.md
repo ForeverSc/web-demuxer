@@ -75,12 +75,12 @@ new WebDemuxer(options: WebDemuxerOptions)
   > ⚠️ 你需要确保将wasm 和js loader文件放在同一个可访问目录下，js loader会默认去请求同目录下的wasm文件
 
 ```typescript
-load(file: File): Promise<void>
+load(source: File | string): Promise<void>
 ```
 加载文件并等待wasm worker加载完成。需要等待load方法执行成功后，才可以继续调用后续的方法
 
 参数:
-  - `file`: 必填，需要处理的`File`对象  
+  - `source`: 必填，需要处理的`File`对象或者文件URL 
 
 ```typescript
 getVideoDecoderConfig(): Promise<VideoDecoderConfig>

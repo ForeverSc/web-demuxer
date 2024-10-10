@@ -46,8 +46,8 @@ async function handleLoadWASM(data: LoadWASMMessageData) {
 }
 
 function handleGetAVStream(data: GetAVStreamMessageData, msgId: number) {
-  const { file, streamType, streamIndex } = data;
-  const result = Module.getAVStream(file, streamType, streamIndex);
+  const { source, streamType, streamIndex } = data;
+  const result = Module.getAVStream(source, streamType, streamIndex);
 
   self.postMessage(
     {
@@ -60,8 +60,8 @@ function handleGetAVStream(data: GetAVStreamMessageData, msgId: number) {
 }
 
 function handleGetAVStreams(data: GetAVStreamsMessageData, msgId: number) {
-  const { file } = data;
-  const result = Module.getAVStreams(file);
+  const { source } = data;
+  const result = Module.getAVStreams(source);
 
   self.postMessage(
     {
@@ -74,8 +74,8 @@ function handleGetAVStreams(data: GetAVStreamsMessageData, msgId: number) {
 }
 
 function handleGetMediaInfo(data: GetMediaInfoMessageData, msgId: number) {
-  const { file } = data;
-  const result = Module.getMediaInfo(file);
+  const { source } = data;
+  const result = Module.getMediaInfo(source);
 
   self.postMessage(
     {
@@ -88,8 +88,8 @@ function handleGetMediaInfo(data: GetMediaInfoMessageData, msgId: number) {
 }
 
 function handleGetAVPacket(data: GetAVPacketMessageData, msgId: number) {
-  const { file, time, streamType, streamIndex, seekFlag } = data;
-  const result = Module.getAVPacket(file, time, streamType, streamIndex, seekFlag);
+  const { source, time, streamType, streamIndex, seekFlag } = data;
+  const result = Module.getAVPacket(source, time, streamType, streamIndex, seekFlag);
 
   self.postMessage(
     {
@@ -102,8 +102,8 @@ function handleGetAVPacket(data: GetAVPacketMessageData, msgId: number) {
 }
 
 function handleGetAVPackets(data: GetAVPacketsMessageData, msgId: number) {
-  const { file, time, seekFlag } = data;
-  const result = Module.getAVPackets(file, time, seekFlag);
+  const { source, time, seekFlag } = data;
+  const result = Module.getAVPackets(source, time, seekFlag);
 
   self.postMessage(
     {
@@ -116,10 +116,10 @@ function handleGetAVPackets(data: GetAVPacketsMessageData, msgId: number) {
 }
 
 async function handleReadAVPacket(data: ReadAVPacketMessageData, msgId: number) {
-  const { file, start, end, streamType, streamIndex, seekFlag } = data;
+  const { source, start, end, streamType, streamIndex, seekFlag } = data;
   const result = await Module.readAVPacket(
     msgId,
-    file,
+    source,
     start,
     end,
     streamType,

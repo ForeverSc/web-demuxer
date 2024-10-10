@@ -30,7 +30,7 @@ export class WebDemuxer {
   private ffmpegWorkerLoadStatus: Promise<void>;
   private msgId: number;
 
-  public file?: File;
+  public source?: File | string;
 
   constructor(options: WebDemuxerOptions) {
     this.ffmpegWorker = new FFmpegWorker();
@@ -71,8 +71,8 @@ export class WebDemuxer {
 
   private getFromWorker<T>(type: FFMpegWorkerMessageType, msgData: FFMpegWorkerMessageData): Promise<T> {
     return new Promise((resolve, reject) => {
-      if (!this.file) {
-        reject("file is not loaded");
+      if (!this.source) {
+        reject("source is not loaded. call load() first");
         return;
       }
 
@@ -95,13 +95,13 @@ export class WebDemuxer {
 
   /**
    * Load a file for demuxing
-   * @param file file to load
+   * @param source source to load
    * @returns load status
    */
-  public async load(file: File) {
+  public async load(source: File | string) {
     await this.ffmpegWorkerLoadStatus;
 
-    this.file = file;
+    this.source = source;
   }
 
   /**
@@ -109,7 +109,7 @@ export class WebDemuxer {
    * terminate the worker
    */
   public destroy() {
-    this.file = undefined;
+    this.source = undefined;
     this.ffmpegWorker.terminate();
   }
 
@@ -125,7 +125,7 @@ export class WebDemuxer {
     streamIndex = -1,
   ): Promise<WebAVStream> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVStream, {
-      file: this.file!,
+      source: this.source!,
       streamType,
       streamIndex,
     });
@@ -137,7 +137,7 @@ export class WebDemuxer {
    */
   public getAVStreams(): Promise<WebAVStream[]> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVStreams, {
-      file: this.file!,
+      source: this.source!,
     });
   }
 
@@ -147,7 +147,7 @@ export class WebDemuxer {
    */
   public getMediaInfo(): Promise<WebMediaInfo> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetMediaInfo, {
-      file: this.file!,
+      source: this.source!,
     });
   }
 
@@ -166,7 +166,7 @@ export class WebDemuxer {
     seekFlag = AVSeekFlag.AVSEEK_FLAG_BACKWARD
   ): Promise<WebAVPacket> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVPacket, {
-      file: this.file!,
+      source: this.source!,
       time,
       streamType,
       streamIndex,
@@ -185,7 +185,7 @@ export class WebDemuxer {
     seekFlag = AVSeekFlag.AVSEEK_FLAG_BACKWARD
   ): Promise<WebAVPacket[]> {
     return this.getFromWorker(FFMpegWorkerMessageType.GetAVPackets, {
-      file: this.file!,
+      source: this.source!,
       time,
       seekFlag
     });
@@ -214,8 +214,8 @@ export class WebDemuxer {
     return new ReadableStream(
       {
         start: (controller) => {
-          if (!this.file) {
-            controller.error("file is not loaded");
+          if (!this.source) {
+            controller.error("source is not loaded. call load() first");
             return;
           }
           const msgListener = (e: MessageEvent) => {
@@ -247,7 +247,7 @@ export class WebDemuxer {
 
           this.ffmpegWorker.addEventListener("message", msgListener);
           this.post(FFMpegWorkerMessageType.ReadAVPacket, {
-            file: this.file,
+            source: this.source,
             start,
             end,
             streamType,
