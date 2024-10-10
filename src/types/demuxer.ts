@@ -10,6 +10,10 @@ export interface WebAVStream {
   codec_type_string: string;
   codec_name: string;
   codec_string: string;
+  color_primaries: string;
+  color_range: string;
+  color_space: string;
+  color_transfer: string;
   profile: string;
   pix_fmt: string;
   level: number;
