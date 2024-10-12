@@ -267,7 +267,7 @@ destroy(): void
 
 ## 自定义Demuxer
 目前默认提供两个版本的demuxer, 用于支持不同的格式:
-- `dist/wasm-files/ffmpeg.js`: 完整版(gzip: 996 kB), 体积较大，支持mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpegi,asf
+- `dist/wasm-files/ffmpeg.js`: 完整版(gzip: 996 kB), 体积较大，支持mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpeg,asf
 - `dist/wasm-files/ffmpeg-mini.js`: 精简版本(gzip: 456 kB)，体积小，仅支持mov,mp4,m4a,3gp,3g2,matroska,webm,m4v
 > 如果你想使用体积更小的版本，可以使用1.0版本的web-demuxer，精简版本仅115KB  
 > 1.0版本使用C编写，聚焦WebCodecs，体积小，2.0版本使用C++ Embind，提供了更丰富的媒体信息输出，更易维护，体积大
@@ -277,7 +277,7 @@ destroy(): void
 首先，修改`Makefile`中的`enable-demuxer`配置
 ```makefile
 DEMUX_ARGS = \
-	--enable-demuxer=mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpegi,asf
+	--enable-demuxer=mov,mp4,m4a,3gp,3g2,mj2,avi,flv,matroska,webm,m4v,mpeg,asf
 ```
 然后先执行`npm run dev:docker:arm64`（如果是windows, 请执行`npm run dev:docker:x86_64`），启动docker环境。   
 
