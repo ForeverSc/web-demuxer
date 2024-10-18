@@ -9,6 +9,10 @@ FFMPEG_CONFIGURE_ARGS = \
 	--enable-avformat \
 	--enable-protocol=file
 
+FFMPEG_DEV_CONFIGURE_ARGS = \
+	--enable-debug=3  \
+	--disable-stripping
+
 MINI_DEMUX_ARGS = \
 	--enable-demuxer=mov,mp4,m4a,3gp,3g2,matroska,webm,m4v
 
@@ -32,6 +36,12 @@ WEB_DEMUXER_ARGS = \
 		-s ASYNCIFY \
 		-s ALLOW_MEMORY_GROWTH=1
 
+
+WEB_DEMUXER_DEV_ARGS = \
+	-O0 \
+	-g
+
+
 clean:
 	cd lib/FFmpeg && \
 	make clean && \
@@ -47,8 +57,16 @@ ffmpeg-lib:
 	emconfigure ./configure $(FFMPEG_CONFIGURE_ARGS) $(DEMUX_ARGS) && \
 	emmake make
 
+ffmpeg-lib-dev:
+	cd lib/FFmpeg && \
+	emconfigure ./configure $(FFMPEG_CONFIGURE_ARGS) $(DEMUX_ARGS) $(FFMPEG_DEV_CONFIGURE_ARGS) && \
+	emmake make
+
 web-demuxer: 
 	$(WEB_DEMUXER_ARGS) -o ./src/lib/ffmpeg.js
 	
 web-demuxer-mini:
 	$(WEB_DEMUXER_ARGS) -o ./src/lib/ffmpeg-mini.js
+
+web-demuxer-dev:
+	$(WEB_DEMUXER_ARGS) $(WEB_DEMUXER_DEV_ARGS) -o ./src/lib/ffmpeg.js
