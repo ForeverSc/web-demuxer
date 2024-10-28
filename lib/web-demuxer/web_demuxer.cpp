@@ -129,7 +129,7 @@ void gen_web_packet(WebAVPacket &web_packet, AVPacket *packet, AVStream *stream)
     double packet_timestamp = packet->pts * av_q2d(stream->time_base);
 
     web_packet.keyframe = packet->flags & AV_PKT_FLAG_KEY;
-    web_packet.timestamp = packet_timestamp > 0 ? packet_timestamp : 0;
+    web_packet.timestamp = packet_timestamp;
     web_packet.duration = packet->duration * av_q2d(stream->time_base);
     web_packet.size = packet->size;
     if (packet->size > 0)
