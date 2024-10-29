@@ -210,6 +210,8 @@ export class WebDemuxer {
     const queueingStrategy = new CountQueuingStrategy({ highWaterMark: 1 });
     const msgId = this.msgId;
     let pullCounter = 0;
+    let msgListener: (e: MessageEvent) => void;
+    let cancelResolver: () => void;
 
     return new ReadableStream(
       {
@@ -218,7 +220,7 @@ export class WebDemuxer {
             controller.error("source is not loaded. call load() first");
             return;
           }
-          const msgListener = (e: MessageEvent) => {
+          msgListener = (e: MessageEvent) => {
             const data = e.data;
 
             if (
@@ -237,10 +239,16 @@ export class WebDemuxer {
               data.type === FFMpegWorkerMessageType.AVPacketStream &&
               data.msgId === msgId
             ) {
-              if (data.result) {
+              if (data.result && !cancelResolver) {
                 controller.enqueue(data.result);
               } else {
-                controller.close();
+                this.ffmpegWorker.removeEventListener("message", msgListener);
+                // only close if the stream has not been cancelled from outside
+                if (cancelResolver) {
+                  cancelResolver();
+                } else {
+                  controller.close();
+                }
               }
             }
           };
@@ -267,7 +275,10 @@ export class WebDemuxer {
           pullCounter++;
         },
         cancel: () => {
-          this.post(FFMpegWorkerMessageType.StopReadAVPacket, undefined, msgId);
+          return new Promise((resolve) => {
+            cancelResolver = resolve;
+            this.post(FFMpegWorkerMessageType.StopReadAVPacket, undefined, msgId);
+          });
         },
       },
       queueingStrategy,
