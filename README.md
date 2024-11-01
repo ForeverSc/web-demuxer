@@ -284,4 +284,5 @@ Then execute `npm run dev:docker:arm64` (if on Windows, please execute `npm run 
 Finally, execute `npm run build:wasm` to build the demuxer for the specified formats.
 
 ## License
-MIT
+This project is primarily licensed under the MIT License, covering most of the codebase.  
+The `lib/` directory includes code derived from FFmpeg, which is licensed under the LGPL License.
