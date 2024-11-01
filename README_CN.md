@@ -284,4 +284,5 @@ DEMUX_ARGS = \
 最后，执行`npm run build:wasm`，构建指定格式的demxuer
 
 ## License
-MIT
+本项目主要采用 MIT 许可证覆盖大部分代码。  
+`lib/` 目录包含源自 FFmpeg 的代码，遵循 LGPL 许可证。
